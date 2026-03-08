@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BFQ - Mind&Code Headhunter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #637a05;
+            --primary-light: #8fa82a;
+            --primary-dark: #4a5c04;
+            --black: #1a1a1a;
+            --gray-100: #f7f7f7;
+            --gray-200: #e5e5e5;
+            --gray-600: #666666;
+            --gray-800: #333333;
+            --white: #ffffff;
+            --danger: #dc2626;
+            --success: #16a34a;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--white);
+            min-height: 100vh;
+            color: var(--black);
+            line-height: 1.6;
+        }
+        
+        /* HEADER */
+        .header {
+            background: var(--white);
+            border-bottom: 2px solid var(--gray-200);
+            padding: 16px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .logo {
+            height: 50px;
+            object-fit: contain;
+        }
+        
+        .company-info h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--black);
+            letter-spacing: -0.02em;
+        }
+        
+        .company-info span {
+            font-size: 0.875rem;
+            color: var(--primary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .header-badge {
+            background: var(--gray-100);
+            color: var(--gray-800);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: 1px solid var(--gray-200);
+        }
+        
+        /* CONTENEDOR */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* PANTALLA INICIO */
+        .welcome-card {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 16px;
+            padding: 48px;
+            text-align: center;
+            margin-top: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .welcome-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--gray-100);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 2.5rem;
+        }
+        
+        .welcome-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 12px;
+        }
+        
+        .welcome-subtitle {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            margin-bottom: 32px;
+        }
+        
+        .instructions-box {
+            background: var(--gray-100);
+            border-left: 4px solid var(--primary);
+            padding: 28px;
+            border-radius: 0 12px 12px 0;
+            text-align: left;
+            margin-bottom: 32px;
+        }
+        
+        .instructions-box h3 {
+            color: var(--primary-dark);
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .instructions-box ul {
+            list-style: none;
+            color: var(--gray-800);
+        }
+        
+        .instructions-box li {
+            padding: 10px 0;
+            padding-left: 32px;
+            position: relative;
+            font-size: 0.95rem;
+        }
+        
+        .instructions-box li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        /* CÁMARA */
+        .camera-section {
+            background: var(--gray-100);
+            border: 2px dashed var(--gray-200);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+            display: none;
+        }
+        
+        .camera-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+        }
+        
+        .camera-container {
+            position: relative;
+            display: inline-block;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        #camera {
+            width: 280px;
+            height: 210px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .camera-status {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--danger);
+            color: var(--white);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+        }
+        
+        .camera-status.active {
+            background: var(--success);
+        }
+        
+        .camera-status::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            background: var(--white);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        
+        /* INPUT */
+        .input-group {
+            margin-bottom: 24px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 1rem;
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            transition: all 0.2s;
+            text-align: center;
+            color: var(--black);
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 122, 5, 0.1);
+        }
+        
+        .input-field::placeholder {
+            color: var(--gray-600);
+        }
+        
+        /* BOTONES */
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 18px 48px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 122, 5, 0.3);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        /* TEST AREA */
+        #testArea {
+            display: none;
+            background: var(--white);
+            border-radius: 16px;
+            padding: 40px;
+            border: 1px solid var(--gray-200);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid var(--gray-200);
+        }
+        
+        .progress-section {
+            flex: 1;
+        }
+        
+        .progress-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            max-width: 400px;
+            height: 10px;
+            background: var(--gray-200);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            transition: width 0.4s ease;
+            border-radius: 5px;
+        }
+        
+        .timer-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--gray-100);
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: 1px solid var(--gray-200);
+        }
+        
+        .timer-icon {
+            color: var(--primary);
+            font-size: 1.25rem;
+        }
+        
+        .timer-display {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--black);
+            font-variant-numeric: tabular-nums;
+        }
+        
+        /* PREGUNTA */
+        .question-container {
+            margin-bottom: 48px;
+        }
+        
+        .question-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .question-badge {
+            background: var(--primary);
+            color: var(--white);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 700;
+        }
+        
+        .question-progress {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .question-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--black);
+            line-height: 1.4;
+            padding: 20px 0;
+        }
+        
+        /* ESCALA */
+        .scale-wrapper {
+            background: var(--gray-100);
+            border-radius: 16px;
+            padding: 32px;
+        }
+        
+        .scale-labels-top {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+        
+        .options-grid {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        
+        .option-card {
+            flex: 1;
+            max-width: 150px;
+            background: var(--white);
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 20px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        
+        .option-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        .option-card.selected {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: var(--white);
+            transform: scale(1.05);
+        }
+        
+        .option-number {
+            font-size: 2rem;
+            font-weight: 800;
+            display: block;
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+        
+        .option-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            line-height: 1.3;
+            display: block;
+        }
+        
+        .scale-labels-bottom {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding: 0 10px;
+        }
+        
+        .scale-label-false {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .scale-label-true {
+            color: var(--primary);
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        /* ALERTA */
+        .alert-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--danger);
+            color: var(--white);
+            padding: 16px 24px;
+            text-align: center;
+            font-weight: 700;
+            display: none;
+            z-index: 1000;
+            animation: slideDown 0.3s ease;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+        
+        /* PANTALLA FINAL */
+        #finishArea {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .success-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 48px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            color: var(--white);
+            font-size: 3rem;
+            box-shadow: 0 8px 20px rgba(22, 163, 74, 0.3);
+        }
+        
+        .success-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 12px;
+        }
+        
+        .success-message {
+            color: var(--gray-600);
+            font-size: 1.125rem;
+            margin-bottom: 32px;
+        }
+        
+        .summary-box {
+            background: var(--gray-100);
+            border-radius: 12px;
+            padding: 28px;
+            text-align: left;
+            margin-bottom: 24px;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+        
+        .summary-label {
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+        
+        .summary-value {
+            font-weight: 700;
+            color: var(--black);
+        }
+        
+        .summary-value.alert {
+            color: var(--danger);
+        }
+        
+        .summary-value.success {
+            color: var(--success);
+        }
+        
+        .loading-box {
+            display: none;
+            margin-top: 24px;
+            padding: 24px;
+        }
+        
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .footer-note {
+            margin-top: 32px;
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .header {
+                padding: 16px 20px;
+            }
+            
+            .logo {
+                height: 40px;
+            }
+            
+            .company-info h1 {
+                font-size: 1rem;
+            }
+            
+            .welcome-card, #testArea {
+                padding: 24px;
+            }
+            
+            .options-grid {
+                flex-wrap: wrap;
+            }
+            
+            .option-card {
+                min-width: calc(50% - 6px);
+            }
+            
+            .test-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ALERTA DE TRAMPA -->
+    <div class="alert-banner" id="alertBanner">
+        ⚠️ Has intentado salir del test. Este incidente ha sido registrado.
+    </div>
+    
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo-container">
+            <img src="https://i.imgur.com/8JZ7Q8P.png" alt="Mind&Code" class="logo" id="companyLogo">
+            <div class="company-info">
+                <h1>Mind&Code</h1>
+                <span>Headhunter</span>
+            </div>
+        </div>
+        <div class="header-badge">
+            Evaluación BFQ
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- PANTALLA INICIO -->
+        <div id="startArea">
+            <div class="welcome-card">
+                <div class="welcome-icon">📝</div>
+                <h2 class="welcome-title">Test de Personalidad BFQ</h2>
+                <p class="welcome-subtitle">Big Five Questionnaire - Evaluación Oficial Mind&Code</p>
+                
+                <div class="instructions-box">
+                    <h3>📋 Instrucciones Importantes</h3>
+                    <ul>
+                        <li>Duración estimada: 25-30 minutos</li>
+                        <li>Se requiere cámara activa durante todo el test</li>
+                        <li>No cambies de pestaña ni minimices la ventana</li>
+                        <li>Responde con honestidad - no hay respuestas correctas o incorrectas</li>
+                        <li>Una vez iniciado, no puedes pausar el test</li>
+                    </ul>
+                </div>
+                
+                <!-- CÁMARA -->
+                <div class="camera-section" id="cameraSection">
+                    <div class="camera-title">Verificación de Identidad</div>
+                    <div class="camera-container">
+                        <video id="camera" autoplay muted playsinline></video>
+                        <div class="camera-status" id="cameraStatus">
+                            <span>●</span> Cámara inactiva
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <input type="email" 
+                           class="input-field" 
+                           id="emailInput" 
+                           placeholder="Ingresa tu correo electrónico corporativo"
+                           required>
+                </div>
+                
+                <button class="btn-primary" onclick="startTest()">
+                    <span>▶</span> Comenzar Evaluación
+                </button>
+            </div>
+        </div>
+        
+        <!-- ÁREA TEST -->
+        <div id="testArea">
+            <div class="test-header">
+                <div class="progress-section">
+                    <div class="progress-label">Progreso del test</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="timer-box">
+                    <span class="timer-icon">⏱️</span>
+                    <span class="timer-display" id="timerDisplay">00:00</span>
+                </div>
+            </div>
+            
+            <div class="question-container">
+                <div class="question-meta">
+                    <span class="question-badge" id="questionBadge">Pregunta 1</span>
+                    <span class="question-progress" id="questionProgress">de 132</span>
+                </div>
+                <h2 class="question-text" id="questionText">Cargando pregunta...</h2>
+            </div>
+            
+            <div class="scale-wrapper">
+                <div class="scale-labels-top">
+                    <span>Completamente falso para mí</span>
+                    <span>Completamente verdadero para mí</span>
+                </div>
+                
+                <div class="options-grid" id="optionsContainer">
+                    <!-- Generado por JS -->
+                </div>
+                
+                <div class="scale-labels-bottom">
+                    <span class="scale-label-false">Falso</span>
+                    <span class="scale-label-true">Verdadero</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PANTALLA FINAL -->
+        <div id="finishArea">
+            <div class="success-card">
+                <div class="success-icon">✓</div>
+                <h2 class="success-title">¡Evaluación Completada!</h2>
+                <p class="success-message">Tus respuestas han sido registradas correctamente en Mind&Code.</p>
+                
+                <div class="summary-box">
+                    <div class="summary-row">
+                        <span class="summary-label">Candidato</span>
+                        <span class="summary-value" id="summaryEmail">-</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Tiempo total</span>
+                        <span class="summary-value" id="summaryTime">-</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Preguntas respondidas</span>
+                        <span class="summary-value success">132</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Eventos de seguridad</span>
+                        <span class="summary-value" id="summaryAlerts">Ninguno</span>
+                    </div>
+                </div>
+                
+                <div class="loading-box" id="loadingBox">
+                    <div class="spinner"></div>
+                    <p>Enviando resultados a Mind&Code...</p>
+                </div>
+                
+                <p class="footer-note">
+                    Puedes cerrar esta ventana. Recibirás una confirmación por email.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // CONFIGURACIÓN
+        // ==========================================
+        const URL_GOOGLE_SCRIPT = 'https://script.google.com/macros/s/AKfycbwBjkv3ruwBE_O6QpN6GpqA5yShgFwhRjUPdnS57rPTpOUk0EP2ZtQiENDZrD-7Ky2k/exec';
+        const TOTAL_PREGUNTAS = 132;
+        
+        // ==========================================
+        // PREGUNTAS BFQ - MIND&CODE
+        // ==========================================
+        const preguntasBFQ = [
+            "Creo que soy una persona activa y vigorosa.",
+            "No me gusta hacer las cosas razonando demasiado sobre ellas.",
+            "Tiendo a involucrarme demasiado cuando alguien me cuenta sus problemas.",
+            "Las consecuencias que mis actos puedan tener sobre los demás no me preocupan mayormente.",
+            "Estoy siempre informado sobre lo que sucede en el mundo.",
+            "Nunca he dicho una mentira.",
+            "No me gustan las actividades que exigen empeñarse y esforzarse hasta el agotamiento.",
+            "Tiendo a ser muy reflexivo.",
+            "No es frecuente que me sienta tenso.",
+            "Noto fácilmente cuando las personas necesitan mi ayuda.",
+            "No recuerdo fácilmente los números de teléfono.",
+            "Siempre he estado completamente de acuerdo con los demás.",
+            "Generalmente tiendo imponerme a las otras personas.",
+            "Ante los obstáculos grandes no conviene empeñarse en conseguir los objetivos propios.",
+            "Me considero una persona que se ofende con facilidad.",
+            "No es necesario comportarse cordialmente con todas las personas.",
+            "No me siento atraído por situaciones nuevas e inesperadas.",
+            "Siempre he resuelto de inmediato todos los problemas que se me presentan.",
+            "No me gustan ambientes de trabajo con mucha competitividad.",
+            "Llevo a cabo las decisiones que he tomado.",
+            "Es difícil que algo me haga perder la paciencia.",
+            "Me gusta mezclarme con la gente.",
+            "Toda novedad me entusiasma.",
+            "Nunca me he asustado ante un peligro.",
+            "Tiendo a decidir rápidamente.",
+            "Antes de tomar iniciativa evalúo consecuencias.",
+            "No creo ser una persona ansiosa.",
+            "Me cuesta saber cómo actuar ante desgracias de amigos.",
+            "Tengo muy buena memoria.",
+            "Siempre he estado seguro de mis acciones.",
+            "No doy importancia a rendir mejor que los demás.",
+            "No me gusta vivir de forma metódica.",
+            "Me siento vulnerable a críticas.",
+            "Ayudo a desconocidos si es preciso.",
+            "No me atraen situaciones en cambio constante.",
+            "Nunca he desobedecido órdenes.",
+            "No me gustan actividades de movimiento continuo.",
+            "No creo que sea preciso esforzarse más allá del límite.",
+            "Estoy dispuesto a esforzarme para destacar.",
+            "Si tengo que criticar a los demás lo hago.",
+            "No hay valores totalmente eternos.",
+            "No es efectivo considerar muchos puntos de vista.",
+            "En general no me irrito fácilmente.",
+            "Si me equivoco admito el error.",
+            "Cuando me enfado manifiesto mi mal humor.",
+            "Llevo a cabo lo decidido aunque cueste esfuerzo.",
+            "No pierdo tiempo aprendiendo cosas fuera de mi interés.",
+            "Sé ajustarme a exigencias de los demás.",
+            "Continúo tareas aunque resultados iniciales sean negativos.",
+            "No suelo sentirme solo o triste.",
+            "No me gusta hacer varias cosas a la vez.",
+            "Soy cordial incluso con personas antipáticas.",
+            "A menudo estoy absorbido por mis compromisos.",
+            "Si algo entorpece proyectos intento otros.",
+            "No me interesan programas que exigen esfuerzo mental.",
+            "Busco nuevas experiencias.",
+            "Me molesta el desorden.",
+            "No reacciono impulsivamente.",
+            "Tengo buenos argumentos para convencer.",
+            "Me gusta estar bien informado.",
+            "No doy importancia a demostrar capacidades.",
+            "Mi humor cambia frecuentemente.",
+            "A veces me enfado por cosas pequeñas.",
+            "Me cuesta prestar cosas.",
+            "No me gustan grupos numerosos.",
+            "No planifico demasiado mi vida.",
+            "Nunca me interesaron costumbres de otros pueblos.",
+            "No dudo en decir lo que pienso.",
+            "A menudo me noto inquieto.",
+            "No es conveniente mostrarse sensible a problemas de otros.",
+            "No me interesa llamar atención en reuniones.",
+            "Creo que todo problema tiene varias soluciones.",
+            "Intento convencer a otros si creo tener razón.",
+            "No confío mucho en los demás.",
+            "Rara vez abandono una actividad iniciada.",
+            "No pierdo la calma fácilmente.",
+            "No dedico mucho tiempo a la lectura.",
+            "No converso con compañeros ocasionales de viaje.",
+            "A veces soy muy riguroso con el deber.",
+            "Siempre me he comportado desinteresadamente.",
+            "Controlo mis sentimientos fácilmente.",
+            "Nunca he sido perfeccionista.",
+            "A veces actúo impulsivamente.",
+            "Nunca he peleado con otra persona.",
+            "No vale la pena buscar perfección.",
+            "Considero el punto de vista de compañeros.",
+            "Siempre me apasionaron las ciencias.",
+            "Revelo secretos fácilmente.",
+            "No reacciono exageradamente a emociones.",
+            "No creo útil conocer historia.",
+            "No reacciono ante provocaciones.",
+            "Nada de lo que he hecho podría haberlo hecho mejor.",
+            "Creo que todos tienen algo bueno.",
+            "Me resulta fácil hablar con desconocidos.",
+            "No se puede convencer a quien piensa distinto.",
+            "Si fracaso lo intento nuevamente.",
+            "Me fascinan culturas diferentes.",
+            "A menudo me siento nervioso.",
+            "No soy muy hablador.",
+            "No vale la pena ajustarse a exigencias de compañeros.",
+            "Siempre comprendí todo lo que he leído.",
+            "Siempre estoy seguro de mí mismo.",
+            "No entiendo comportamientos fuera de la norma.",
+            "Me molesta que me interrumpan.",
+            "Me gustan programas culturales o científicos.",
+            "Reviso mucho un trabajo antes de entregarlo.",
+            "Si algo no sale pronto no insisto demasiado.",
+            "No dudo en decir a otros que se metan en sus asuntos.",
+            "Si algo puede desagradar a alguien dejo de hacerlo.",
+            "No reviso detalles de un trabajo terminado.",
+            "Se obtienen mejores resultados cooperando.",
+            "Prefiero leer a practicar deporte.",
+            "Nunca he criticado a nadie.",
+            "Afronto experiencias con entusiasmo.",
+            "Quedo satisfecho al ver resultados planeados.",
+            "Cuando me critican exijo explicaciones.",
+            "No se obtiene nada sin competir.",
+            "Intento ver las cosas desde distintos enfoques.",
+            "No pierdo el control en situaciones difíciles.",
+            "Pequeñas dificultades pueden preocuparme.",
+            "No me comporto abierto con extraños.",
+            "No cambio de humor bruscamente.",
+            "No me gustan actividades con riesgo.",
+            "Nunca me interesaron temas científicos o filosóficos.",
+            "No sé si terminaré lo que empiezo.",
+            "Confío en los demás.",
+            "He mostrado simpatía por todos.",
+            "Con algunas personas no hay que ser tolerante.",
+            "Cuido las cosas en sus detalles.",
+            "Trabajar en grupo no desarrolla capacidades.",
+            "No busco nuevas soluciones si ya hay una eficaz.",
+            "No es útil revisar varias veces el trabajo."
+        ];
+        
+        // ==========================================
+        // VARIABLES GLOBALES
+        // ==========================================
+        let stream;
+        let currentQuestion = 0;
+        let responses = [];
+        let cheatEvents = [];
+        let startTime;
+        let email;
+        let timerInterval;
+        let photoInterval;
+        
+        // ==========================================
+        // INICIALIZACIÓN
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            initCamera();
+            setupAntiCheat();
+        });
+        
+        // ==========================================
+        // CÁMARA
+        // ==========================================
+        async function initCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 320, height: 240, facingMode: "user" }, 
+                    audio: false 
+                });
+                
+                const camera = document.getElementById('camera');
+                camera.srcObject = stream;
+                
+                document.getElementById('cameraSection').style.display = 'block';
+                
+                const status = document.getElementById('cameraStatus');
+                status.classList.add('active');
+                status.innerHTML = '<span>●</span> Cámara activa';
+                
+            } catch (err) {
+                console.log('Cámara no disponible:', err);
+                // Continuar sin cámara si no hay
+            }
+        }
+        
+        function capturePhoto() {
+            if (!stream) return;
+            
+            const video = document.getElementById('camera');
+            const canvas = document.createElement('canvas');
+            canvas.width = 320;
+            canvas.height = 240;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, 320, 240);
+            
+            const photoData = canvas.toDataURL('image/jpeg', 0.7);
+            
+            // Enviar foto a Google Drive
+            fetch(URL_GOOGLE_SCRIPT, {
+                method: 'POST',
+                body: JSON.stringify({
+                    type: 'photo',
+                    email: email,
+                    photo: photoData,
+                    question: currentQuestion,
+                    timestamp: new Date().toISOString()
+                }),
+                mode: 'no-cors'
+            }).catch(() => {});
+        }
+        
+        // ==========================================
+        // INICIAR TEST
+        // ==========================================
+        async function startTest() {
+            email = document.getElementById('emailInput').value.trim().toLowerCase();
+            
+            if (!email || !email.includes('@')) {
+                alert('Por favor ingresa un email válido');
+                return;
+            }
+            
+            // Pantalla completa
+            try {
+                await document.documentElement.requestFullscreen();
+            } catch (e) {
+                console.log('Fullscreen no soportado');
+            }
+            
+            // Iniciar capturas de foto cada 30 segundos
+            photoInterval = setInterval(capturePhoto, 30000);
+            capturePhoto(); // Primera foto inmediata
+            
+            startTime = Date.now();
+            
+            document.getElementById('startArea').style.display = 'none';
+            document.getElementById('testArea').style.display = 'block';
+            
+            showQuestion();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+        
+        // ==========================================
+        // MOSTRAR PREGUNTA
+        // ==========================================
+        function showQuestion() {
+            const progress = ((currentQuestion + 1) / TOTAL_PREGUNTAS) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('questionBadge').textContent = `Pregunta ${currentQuestion + 1}`;
+            document.getElementById('questionText').textContent = preguntasBFQ[currentQuestion];
+            
+            // Generar opciones
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+            
+            const labels = [
+                { num: '1', text: 'Completamente falso' },
+                { num: '2', text: 'Bastante falso' },
+                { num: '3', text: 'Ni verdadero ni falso' },
+                { num: '4', text: 'Bastante verdadero' },
+                { num: '5', text: 'Completamente verdadero' }
+            ];
+            
+            labels.forEach((item, i) => {
+                const btn = document.createElement('div');
+                btn.className = 'option-card';
+                btn.innerHTML = `
+                    <span class="option-number">${item.num}</span>
+                    <span class="option-label">${item.text}</span>
+                `;
+                btn.onclick = () => selectOption(i + 1, btn);
+                container.appendChild(btn);
+            });
+        }
+        
+        function selectOption(value, element) {
+            // Marcar visualmente
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            
+            // Guardar respuesta
+            responses.push({
+                question: currentQuestion + 1,
+                answer: value
+            });
+            
+            // Pequeña pausa para feedback visual
+            setTimeout(() => {
+                currentQuestion++;
+                
+                if (currentQuestion >= TOTAL_PREGUNTAS) {
+                    finishTest();
+                } else {
+                    showQuestion();
+                }
+            }, 250);
+        }
+        
+        // ==========================================
+        // TIMER
+        // ==========================================
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const secs = (elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('timerDisplay').textContent = `${mins}:${secs}`;
+        }
+        
+        // ==========================================
+        // ANTI-TRAMPA
+        // ==========================================
+        function setupAntiCheat() {
+            // Cambio de pestaña
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && currentQuestion > 0 && currentQuestion < TOTAL_PREGUNTAS) {
+                    cheatEvents.push({
+                        type: 'cambio_pestana',
+                        time: new Date().toLocaleString(),
+                        question: currentQuestion
+                    });
+                    showAlert();
+                }
+            });
+            
+            // Salir de pantalla completa
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement && currentQuestion > 0 && currentQuestion < TOTAL_PREGUNTAS) {
+                    cheatEvents.push({
+                        type: 'salio_pantalla_completa',
+                        time: new Date().toLocaleString(),
+                        question: currentQuestion
+                    });
+                    showAlert();
+                }
+            });
+            
+            // Prevenir copiar/pegar/derecho
+            ['copy', 'paste', 'cut', 'contextmenu'].forEach(evt => {
+                document.addEventListener(evt, e => {
+                    e.preventDefault();
+                    return false;
+                });
+            });
+            
+            // Prevenir teclas de acceso
+            document.addEventListener('keydown', e => {
+                if (e.ctrlKey || e.metaKey || e.altKey) {
+                    e.preventDefault();
+                    return false;
+                }
+                if (['F11', 'Escape', 'F12'].includes(e.key)) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        }
+        
+        function showAlert() {
+            const banner = document.getElementById('alertBanner');
+            banner.style.display = 'block';
+            setTimeout(() => {
+                banner.style.display = 'none';
+            }, 5000);
+        }
+        
+        // ==========================================
+        // FINALIZAR
+        // ==========================================
+        function finishTest() {
+            clearInterval(timerInterval);
+            clearInterval(photoInterval);
+            
+            const totalTime = Math.floor((Date.now() - startTime) / 1000);
+            
+            document.getElementById('testArea').style.display = 'none';
+            document.getElementById('finishArea').style.display = 'block';
+            
+            // Actualizar resumen
+            document.getElementById('summaryEmail').textContent = email;
+            const mins = Math.floor(totalTime / 60);
+            const secs = totalTime % 60;
+            document.getElementById('summaryTime').textContent = `${mins} min ${secs} seg`;
+            
+            const alertsElement = document.getElementById('summaryAlerts');
+            if (cheatEvents.length === 0) {
+                alertsElement.textContent = 'Ninguno';
+                alertsElement.className = 'summary-value success';
+            } else {
+                alertsElement.textContent = `${cheatEvents.length} detectados`;
+                alertsElement.className = 'summary-value alert';
+            }
+            
+            document.getElementById('loadingBox').style.display = 'block';
+            
+            // Enviar datos finales
+            const finalData = {
+                type: 'final',
+                email: email,
+                responses: responses,
+                cheatEvents: cheatEvents,
+                duration: totalTime,
+                timestamp: new Date().toISOString(),
+                photos: photoInterval ? 'Capturas enviadas' : 'Sin cámara'
+            };
+            
+            fetch(URL_GOOGLE_SCRIPT, {
+                method: 'POST',
+                body: JSON.stringify(finalData),
+                mode: 'no-cors'
+            })
+            .then(() => {
+                document.getElementById('loadingBox').innerHTML = 
+                    '<p style="color: var(--success); font-weight: 600; font-size: 1.1rem;">✓ Resultados enviados correctamente a Mind&Code</p>';
+            })
+            .catch(() => {
+                document.getElementById('loadingBox').innerHTML = 
+                    '<p style="color: var(--danger); font-weight: 600;">⚠ Error al enviar. Por favor toma captura de pantalla.</p>';
+            });
+            
+            // Detener cámara
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        }
+    </script>
+</body>
+</html>
