@@ -788,7 +788,7 @@
         // ==========================================
         // CONFIGURACIÓN
         // ==========================================
-        const URL_GOOGLE_SCRIPT = 'https://script.google.com/macros/s/AKfycbwsrFzWHhORjx8B9L3034SB8jEUdU7mCN_8LJpkXRNcCWtroycPNmabAYsiKNXqM6Th/exec';
+const URL_GOOGLE_SCRIPT = 'https://script.google.com/macros/s/AKfycbwsrFzWHhORjx8B9L3034SB8jEUdU7mCN_8LJpkXRNcCWtroycPNmabAYsiKNXqM6Th/exec';
         const TOTAL_PREGUNTAS = 132;
         
         // ==========================================
@@ -950,7 +950,7 @@
         });
         
         // ==========================================
-        // CÁMARA
+        // CÁMARA - OBLIGATORIA
         // ==========================================
         async function initCamera() {
             try {
@@ -969,8 +969,20 @@
                 status.innerHTML = '<span>●</span> Cámara activa';
                 
             } catch (err) {
+                // BLOQUEAR SI NO HAY CÁMARA
                 console.log('Cámara no disponible:', err);
-                // Continuar sin cámara si no hay
+                
+                alert('⚠️ ERROR: La cámara es obligatoria.\n\n1. Conecta una cámara web\n2. Permite el acceso al navegador\n3. Recarga la página');
+                
+                const btn = document.querySelector('.btn-primary');
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.innerHTML = '<span>❌</span> Cámara requerida';
+                
+                document.getElementById('cameraSection').style.display = 'block';
+                const status = document.getElementById('cameraStatus');
+                status.innerHTML = '<span>●</span> ERROR: Sin cámara';
+                status.style.background = '#dc2626';
             }
         }
         
