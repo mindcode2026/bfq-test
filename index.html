@@ -281,6 +281,13 @@
             color: var(--black);
             line-height: 1.4;
             padding: 20px 0;
+            min-height: 80px; /* Evitar colapso si está vacío */
+        }
+        
+        .question-text:empty::before {
+            content: "Error al cargar la pregunta. Por favor recarga la página.";
+            color: var(--danger);
+            font-size: 1rem;
         }
         
         .scale-wrapper {
@@ -621,8 +628,8 @@
                         <li>Duración estimada: 25-30 minutos</li>
                         <li>No cambies de pestaña ni minimices la ventana durante el test</li>
                         <li>Responde con honestidad - no hay respuestas correctas o incorrectas</li>
+                        <li>Una vez iniciado, no puedes pausar el test</li>
                         <li>El test se activará automáticamente en pantalla completa</li>
-                        <li>Usa el mismo correo que aparece en tu Curriculum vitae</li>
                     </ul>
                 </div>
                 
@@ -735,112 +742,148 @@ let startTime;
 let email;
 let timerInterval;
 let isTestRunning = false;
-let isProcessing = false; // NUEVO: Bloqueo anti-doble-clic
+let isProcessing = false;
 
-// Preguntas BFQ (array completo)
+// ==========================================
+// PREGUNTAS BFQ - 132 PREGUNTAS COMPLETAS
+// ==========================================
 const preguntasBFQ = [
-    "Creo que soy una persona activa y vigorosa.",
-    "No me gusta hacer las cosas razonando demasiado sobre ellas.",
-    "Tiendo a involucrarme demasiado cuando alguien me cuenta sus problemas.",
-    "Las consecuencias que mis actos puedan tener sobre los demás no me preocupan mayormente.",
-    "Estoy siempre informado sobre lo que sucede en el mundo.",
-    "Nunca he dicho una mentira.",
-    "No me gustan las actividades que exigen empeñarse y esforzarse hasta el agotamiento.",
-    "Tiendo a ser muy reflexivo.",
-    "No es frecuente que me sienta tenso.",
-    "Noto fácilmente cuando las personas necesitan mi ayuda.",
-    "No recuerdo fácilmente los números de teléfono.",
-    "Siempre he estado completamente de acuerdo con los demás.",
-    "Generalmente tiendo imponerme a las otras personas.",
-    "Ante los obstáculos grandes no conviene empeñarse en conseguir los objetivos propios.",
-    "Me considero una persona que se ofende con facilidad.",
-    "No es necesario comportarse cordialmente con todas las personas.",
-    "No me siento atraído por situaciones nuevas e inesperadas.",
-    "Siempre he resuelto de inmediato todos los problemas que se me presentan.",
-    "No me gustan ambientes de trabajo con mucha competitividad.",
-    "Llevo a cabo las decisiones que he tomado.",
-    "Es difícil que algo me haga perder la paciencia.",
-    "Me gusta mezclarme con la gente.",
-    "Toda novedad me entusiasma.",
-    "Nunca me he asustado ante un peligro.",
-    "Tiendo a decidir rápidamente.",
-    "Antes de tomar iniciativa evalúo consecuencias.",
-    "No creo ser una persona ansiosa.",
-    "Me cuesta saber cómo actuar ante desgracias de amigos.",
-    "Tengo muy buena memoria.",
-    "Siempre he estado seguro de mis acciones.",
-    "No doy importancia a rendir mejor que los demás.",
-    "No me gusta vivir de forma metódica.",
-    "Me siento vulnerable a críticas.",
-    "Ayudo a desconocidos si es preciso.",
-    "No me atraen situaciones en cambio constante.",
-    "Nunca me interesaron costumbres de otros pueblos.",
-    "No dudo en decir lo que pienso.",
-    "A menudo me noto inquieto.",
-    "No es conveniente mostrarse sensible a problemas de otros.",
-    "No me interesa llamar atención en reuniones.",
-    "Creo que todo problema tiene varias soluciones.",
-    "Intento convencer a otros si creo tener razón.",
-    "No confío mucho en los demás.",
-    "Rara vez abandono una actividad iniciada.",
-    "No pierdo la calma fácilmente.",
-    "No dedico mucho tiempo a la lectura.",
-    "No converso con compañeros ocasionales de viaje.",
-    "A veces soy muy riguroso con el deber.",
-    "Siempre me he comportado desinteresadamente.",
-    "Controlo mis sentimientos fácilmente.",
-    "Nunca he sido perfeccionista.",
-    "A veces actúo impulsivamente.",
-    "Nunca he peleado con otra persona.",
-    "No vale la pena buscar perfección.",
-    "Considero el punto de vista de compañeros.",
-    "Siempre me apasionaron las ciencias.",
-    "Revelo secretos fácilmente.",
-    "No reacciono exageradamente a emociones.",
-    "No creo útil conocer historia.",
-    "No reacciono ante provocaciones.",
-    "Nada de lo que he hecho podría haberlo hecho mejor.",
-    "Creo que todos tienen algo bueno.",
-    "Me resulta fácil hablar con desconocidos.",
-    "No se puede convencer a quien piensa distinto.",
-    "Si fracaso lo intento nuevamente.",
-    "Me fascinan culturas diferentes.",
-    "A menudo me siento nervioso.",
-    "No soy muy hablador.",
-    "No vale la pena ajustarse a exigencias de compañeros.",
-    "Siempre comprendí todo lo que he leído.",
-    "Siempre estoy seguro de mí mismo.",
-    "No entiendo comportamientos fuera de la norma.",
-    "Me molesta que me interrumpan.",
-    "Me gustan programas culturales o científicos.",
-    "Reviso mucho un trabajo antes de entregarlo.",
-    "Si algo no sale pronto no insisto demasiado.",
-    "No dudo en decir a otros que se metan en sus asuntos.",
-    "Si algo puede desagradar a alguien dejo de hacerlo.",
-    "No reviso detalles de un trabajo terminado.",
-    "Se obtienen mejores resultados cooperando.",
-    "Prefiero leer a practicar deporte.",
-    "Nunca he criticado a nadie.",
-    "Afronto experiencias con entusiasmo.",
-    "Quedo satisfecho al ver resultados planeados.",
-    "Cuando me critican exijo explicaciones.",
-    "No se obtiene nada sin competir.",
-    "Intento ver las cosas desde distintos enfoques.",
-    "No pierdo el control en situaciones difíciles.",
-    "Pequeñas dificultades pueden preocuparme.",
-    "No me comporto abierto con extraños.",
-    "No cambio de humor bruscamente.",
-    "No me gustan actividades con riesgo.",
-    "Nunca me interesaron temas científicos o filosóficos.",
-    "No sé si terminaré lo que empiezo.",
-    "Confío en los demás.",
-    "He mostrado simpatía por todos.",
-    "Con algunas personas no hay que ser tolerante.",
-    "Cuido las cosas en sus detalles.",
-    "Trabajar en grupo no desarrolla capacidades.",
-    "No busco nuevas soluciones si ya hay una eficaz.",
-    "No es útil revisar varias veces el trabajo."
+"Creo que soy una persona activa y vigorosa.",
+"No me gusta hacer las cosas razonando demasiado sobre ellas.",
+"Tiendo a involucrarme demasiado cuando alguien me cuenta sus problemas.",
+"Las consecuencias que mis actos puedan tener sobre los demás, no me preocupan mayormente.",
+"Estoy siempre informado sobre lo que sucede en el mundo.",
+"Nunca he dicho una mentira.",
+"No me gustan las actividades que exigen empeñarse y esforzarse hasta el agotamiento.",
+"Tiendo a ser muy reflexivo.",
+"No es frecuente que me sienta tenso.",
+"Noto fácilmente cuando las personas necesitan mi ayuda.",
+"No recuerdo fácilmente los números de teléfono.",
+"Siempre he estado completamente de acuerdo con los demás.",
+"Generalmente tiendo imponerme a las otras personas, más que ser complaciente con ellas.",
+"Ante los obstáculos grandes, no conviene empeñarse en conseguir los objetivos propios.",
+"Me considero una persona que se ofende o tomo a mal las cosas con facilidad.",
+"No es necesario comportarse cordialmente con todas las personas.",
+"No me siento muy atraído por las situaciones nuevas e inesperadas.",
+"Siempre he resuelto de inmediato todos los problemas que se me presentan.",
+"No me gustan los ambientes de trabajo en las que hay mucha competitividad.",
+"Llevo a cabo las decisiones que he tomado.",
+"Es difícil que algo o alguien me haga perder la paciencia.",
+"Me gusta mezclarme con la gente.",
+"Toda novedad me entusiasma.",
+"Nunca me he asustado ante un peligro, aunque fuera grave.",
+"Tiendo a decidir rápidamente.",
+"Antes de tomar cualquier iniciativa, me tomo tiempo para evaluar las posibles consecuencias.",
+"No creo ser una persona ansiosa.",
+"Me es complejo saber cómo actuar ante las desgracias de mis amigos.",
+"Tengo muy buen memoria.",
+"Siempre he estado absolutamente seguro de todas mis acciones.",
+"En mi trabajo no le doy especial importancia a rendir mejor que los demás.",
+"No me gusta vivir de manera demasiado metódica y ordenada.",
+"Me siento vulnerable a las críticas de los demás.",
+"Si es preciso, no tengo inconveniente en ayudar a un desconocido.",
+"No me atraen las situaciones en constante cambio.",
+"Nunca he desobedecido las órdenes recibidas, ni siquiera cuando era niño.",
+"No me gustan aquellas actividades en las que es preciso ir de un sitio a otro y moverse continuamente.",
+"No creo que sea preciso esforzarse más allá del límite de las propias fuerzas, incluso aunque haya que cumplir algún plazo.",
+"Estoy dispuesto a esforzarme al máximo con tal de destacar.",
+"Si tengo que criticar a los demás, lo hago, sobre todo cuando se lo merecen.",
+"Creo que no hay valores y costumbres totalmente válidos y eternos.",
+"Para enfrentarse a un problema no es efectivo tener presentes muchos puntos de vista diferentes.",
+"En general no me irrito, ni siquiera en situaciones en las que tendría motivos suficientes para ello.",
+"Si me equivoco, siempre me resulta fácil admitirlo.",
+"Cuando me enfado manifiesto mi malhumor.",
+"Llevo a cabo lo que he decidido, aunque me suponga un mayor esfuerzo de lo previsto.",
+"No pierdo tiempo en aprender cosas que no estén estrictamente relacionadas con mi campo de intereses.",
+"Casi siempre sé cómo ajustarme a las exigencias de los demás.",
+"Llevo adelante las tareas emprendidas, aunque los resultados iniciales parezcan negativos.",
+"No es habitual sentirme sólo y triste.",
+"No me gusta hacer varias cosas al mismo tiempo.",
+"Habitualmente muestro una actitud cordial, incluso con las personas que me provocan una cierta antipatía.",
+"A menudo estoy completamente absorbido por mis compromisos y actividades.",
+"Cuando algo entorpece mis proyectos, no insisto en conseguirlos e intento otros.",
+"No me interesan los programas de televisión que me exigen esfuerzo mental o compromiso por la periodicidad de sus transmisiones.",
+"Soy una persona que siempre busca nuevas experiencias.",
+"Me molesta mucho el desorden.",
+"No tiendo a reaccionar de modo impulsivo.",
+"Siempre encuentro buenos argumentos para sostener mis propuestas y convencer a los demás de su validez.",
+"Me gusta estar bien informado, incluso sobre temas alejados de mi ámbito de competencia.",
+"No le doy mucha importancia a demostrar mis capacidades.",
+"Mi humor pasa por altibajos frecuentemente.",
+"A veces me enfado por cosas de poca importancia.",
+"Me cuesta efectuar prestamos, incluso a personas que conozco bien.",
+"No me gusta estar en grupos numerosos.",
+"No tiendo a planificar mi vida hasta en los más pequeños detalles.",
+"Nunca me han interesado la vida y costumbres de otros pueblos.",
+"No dudo en decir lo que pienso.",
+"A menudo me noto inquieto.",
+"En general creo que no es conveniente mostrarse sensible a los problemas de los demás.",
+"En las reuniones, no me interesa mayormente llamar la atención.",
+"Creo que todo problema puede ser resuelto de varias maneras.",
+"Si creo que tengo razón, intento convencer a los demás aunque me cueste tiempo y energía.",
+"Normalmente no confío mucho en los demás.",
+"Difícilmente desisto de una actividad que he comenzado.",
+"No tiendo a ser una persona que pierde la calma con facilidad.",
+"No dedico mucho tiempo a la lectura.",
+"Normalmente no entablo conversación con compañeros ocasionales de viaje.",
+"A veces soy tan riguroso en el cumplimiento de mi deber que puedo resultar pesado.",
+"Siempre me he comportado de modo totalmente desinteresado.",
+"Controlo mis sentimientos con facilidad.",
+"Nunca he sido un perfeccionista.",
+"En diversas circunstancias me he comportado impulsivamente.",
+"Nunca he discutido o peleado con otra persona.",
+"Es inútil empeñarse totalmente en algo, porque la perfección no se alcanza nunca.",
+"Tengo en gran consideración el punto de vista de mis compañeros.",
+"Siempre me han apasionado las ciencias.",
+"Me resulta fácil revelar secretos o noticias de carácter reservado a los demás.",
+"Normalmente no reacciono de modo exagerado, ni siquiera ante las emociones fuertes.",
+"No creo que conocer la historia sirva de mucho.",
+"No tiendo a reaccionar ante las provocaciones.",
+"Nada de lo que he hecho hasta ahora, podría haberlo hecho mejor.",
+"Creo que todas las personas tienen algo de bueno.",
+"Me resulta fácil hablar con personas que no conozco.",
+"No creo que haya posibilidad de convencer a otro cuando no piensa como yo o como mi equipo de trabajo.",
+"Si fracaso en algo, lo intento de nuevo hasta conseguirlo.",
+"Siempre me han fascinado las culturas muy diferentes a la mía.",
+"A menudo me siento nervioso.",
+"No soy una persona habladora.",
+"No merece mucho la pena ajustarse a las exigencias de los compañeros, cuando ello supone una disminución del propio ritmo de trabajo.",
+"Siempre he comprendido de inmediato todo lo que he leído.",
+"Siempre estoy seguro de mí mismo.",
+"No comprendo qué empuja a las personas a comportarse de modo diferente a la norma.",
+"Me molesta mucho que me interrumpan mientras estoy haciendo algo que me interesa.",
+"Me gusta mucho ver programas de información cultural o científica.",
+"Antes de entregar un trabajo, dedico mucho tiempo a revisarlo.",
+"Si algo no se desarrolla tan pronto como deseaba, no insisto demasiado.",
+"Si es preciso, no dudo en decir a las demás que se metan en sus asuntos.",
+"Si alguna acción mía puede llegar a desagradar a alguien, seguramente dejo de hacerla.",
+"Cuando un trabajo está terminado, no me pongo a revisar sus detalles.",
+"Estoy convencido de que se obtienen mejores resultados cooperando con los demás, que compitiendo.",
+"Prefiero leer a practicar alguna actividad deportiva.",
+"Nunca he criticado a otra persona.",
+"Afronto todas mis actividades y experiencias con gran entusiasmo.",
+"Sólo quedo satisfecho cuando veo los resultados de lo que había programado.",
+"Cuando me critican, no puedo evitar exigir explicaciones.",
+"No se obtiene nada en la vida sin ser competitivo.",
+"Siempre intento ver las cosas desde distintos enfoques.",
+"No pierdo el control, Incluso en situaciones muy difíciles.",
+"A veces incluso pequeñas dificultades pueden llegar a preocuparme.",
+"Generalmente no me comporto de manera abierta con los extraños.",
+"No tiendo cambiar de humor bruscamente.",
+"No me gustan las actividades que implican riesgo.",
+"Nunca he tenido mucho interés por los temas científicos o filosóficos.",
+"Cuando empiezo a hacer algo, nunca sé si lo terminaré.",
+"Generalmente confío en los demás y en sus intenciones.",
+"Siempre he mostrado simpatía por todas las personas que he conocido.",
+"Con ciertas personas no es necesario ser demasiado tolerante.",
+"Suelo cuidar todas las cosas hasta en sus mínimos detalles.",
+"No es trabajando en grupo como se pueden desarrollar mejor las propias capacidades.",
+"No tiendo buscar soluciones nuevas a problemas para los que ya existe una solución eficaz.",
+"No creo que sea útil perder tiempo repasando varias veces el trabajo hecho."
 ];
+
+// Verificar que tenemos 132 preguntas
+console.log('Total preguntas cargadas:', preguntasBFQ.length);
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', () => {
@@ -875,7 +918,6 @@ function returnToFullscreen() {
     enterFullscreen();
     document.getElementById('fullscreenWarning').style.display = 'none';
     
-    // Reanudar timer si estaba pausado
     if (isTestRunning) {
         clearInterval(timerInterval);
         timerInterval = setInterval(updateTimer, 1000);
@@ -888,7 +930,6 @@ function handleFullscreenChange() {
     const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
     
     if (!isFullscreen) {
-        // Salió de pantalla completa durante el test
         document.getElementById('fullscreenWarning').style.display = 'flex';
         
         cheatEvents.push({
@@ -897,13 +938,10 @@ function handleFullscreenChange() {
             question: currentQuestion + 1
         });
         
-        // Pausar timer
         clearInterval(timerInterval);
     } else {
-        // Entró a pantalla completa
         document.getElementById('fullscreenWarning').style.display = 'none';
         
-        // Reanudar timer
         if (isTestRunning) {
             clearInterval(timerInterval);
             timerInterval = setInterval(updateTimer, 1000);
@@ -960,10 +998,8 @@ async function startTest() {
         return;
     }
     
-    // Activar pantalla completa automáticamente
     enterFullscreen();
     
-    // Pequeña espera para que el fullscreen se active
     setTimeout(() => {
         isTestRunning = true;
         startTime = Date.now();
@@ -977,10 +1013,25 @@ async function startTest() {
 }
 
 function showQuestion() {
+    // Verificar que la pregunta existe
+    if (currentQuestion >= preguntasBFQ.length) {
+        console.error('Error: No existe la pregunta', currentQuestion);
+        finishTest();
+        return;
+    }
+    
     const progress = ((currentQuestion + 1) / TOTAL_PREGUNTAS) * 100;
     document.getElementById('progressBar').style.width = progress + '%';
     document.getElementById('questionBadge').textContent = `Pregunta ${currentQuestion + 1}`;
-    document.getElementById('questionText').textContent = preguntasBFQ[currentQuestion];
+    
+    // Mostrar texto de la pregunta con verificación
+    const questionText = preguntasBFQ[currentQuestion];
+    if (!questionText) {
+        console.error('Pregunta vacía en índice:', currentQuestion);
+        document.getElementById('questionText').textContent = `Error: Pregunta ${currentQuestion + 1} no disponible`;
+    } else {
+        document.getElementById('questionText').textContent = questionText;
+    }
     
     const container = document.getElementById('optionsContainer');
     container.innerHTML = '';
@@ -1004,39 +1055,31 @@ function showQuestion() {
         container.appendChild(btn);
     });
     
-    // Resetear bloqueo al mostrar nueva pregunta
     isProcessing = false;
 }
 
 function selectOption(value, element) {
-    // BLOQUEO ANTI-DOBLE-CLIC: Si ya está procesando, ignorar el clic
     if (isProcessing) return;
-    
-    // Activar bloqueo inmediatamente
     isProcessing = true;
     
-    // Deshabilitar todas las opciones visualmente
     document.querySelectorAll('.option-card').forEach(card => {
         card.classList.add('disabled');
         card.style.pointerEvents = 'none';
     });
     
-    // Marcar seleccionada
     element.classList.add('selected');
     element.classList.remove('disabled');
     
-    // Guardar respuesta
     responses.push({
         question: currentQuestion + 1,
         answer: value,
         timestamp: new Date().toISOString()
     });
     
-    // Pequeña pausa para feedback visual, luego siguiente pregunta
     setTimeout(() => {
         currentQuestion++;
         
-        if (currentQuestion >= TOTAL_PREGUNTAS) {
+        if (currentQuestion >= TOTAL_PREGUNTAS || currentQuestion >= preguntasBFQ.length) {
             finishTest();
         } else {
             showQuestion();
@@ -1052,13 +1095,12 @@ function updateTimer() {
 }
 
 // ==========================================
-// FUNCIÓN DE ENVÍO CORREGIDA - USANDO JSONP
+// FUNCIÓN DE ENVÍO
 // ==========================================
 async function finishTest() {
     isTestRunning = false;
     clearInterval(timerInterval);
     
-    // Salir de pantalla completa
     if (document.exitFullscreen) {
         document.exitFullscreen();
     } else if (document.webkitExitFullscreen) {
@@ -1089,7 +1131,6 @@ async function finishTest() {
     
     document.getElementById('loadingBox').style.display = 'block';
     
-    // Obtener IP
     let ipAddress = 'No disponible';
     try {
         const ipResponse = await fetch('https://api.ipify.org?format=json');
@@ -1099,7 +1140,6 @@ async function finishTest() {
         console.log('IP no disponible');
     }
     
-    // Preparar datos
     const testData = {
         email: email,
         fecha: new Date().toLocaleString('es-ES'),
@@ -1113,8 +1153,8 @@ async function finishTest() {
     };
     
     console.log('Enviando datos:', testData);
+    console.log('Total respuestas:', responses.length);
     
-    // MÉTODO 1: Intentar con fetch primero (puede funcionar si CORS está bien configurado)
     try {
         const response = await fetch(URL_GOOGLE_SCRIPT, {
             method: 'POST',
@@ -1125,7 +1165,6 @@ async function finishTest() {
             body: JSON.stringify(testData)
         });
         
-        // Con no-cors no podemos leer la respuesta, asumimos éxito si no hay error
         document.getElementById('summaryStatus').textContent = '✓ Enviado correctamente';
         document.getElementById('summaryStatus').className = 'summary-value success';
         document.getElementById('loadingBox').innerHTML = 
@@ -1133,30 +1172,24 @@ async function finishTest() {
             
     } catch (error) {
         console.error('Error en fetch:', error);
-        
-        // MÉTODO 2: Fallback con JSONP (formulario oculto)
         await enviarConJSONP(testData);
     }
 }
 
-// Función alternativa usando JSONP/formulario
 function enviarConJSONP(data) {
     return new Promise((resolve, reject) => {
-        // Crear formulario invisible
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = URL_GOOGLE_SCRIPT;
         form.target = 'hidden-iframe';
         form.style.display = 'none';
         
-        // Agregar datos como campo oculto
         const input = document.createElement('input');
         input.type = 'hidden';
         input.name = 'data';
         input.value = JSON.stringify(data);
         form.appendChild(input);
         
-        // Crear iframe oculto para recibir respuesta
         const iframe = document.createElement('iframe');
         iframe.name = 'hidden-iframe';
         iframe.style.display = 'none';
@@ -1164,7 +1197,6 @@ function enviarConJSONP(data) {
         document.body.appendChild(iframe);
         document.body.appendChild(form);
         
-        // Manejar respuesta
         iframe.onload = function() {
             try {
                 document.getElementById('summaryStatus').textContent = '✓ Enviado correctamente';
@@ -1176,7 +1208,6 @@ function enviarConJSONP(data) {
                 reject(e);
             }
             
-            // Limpiar
             setTimeout(() => {
                 document.body.removeChild(form);
                 document.body.removeChild(iframe);
