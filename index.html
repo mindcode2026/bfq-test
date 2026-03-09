@@ -21,6 +21,7 @@
             --gray-600: #666666;
             --gray-800: #333333;
             --white: #ffffff;
+            --danger: #dc2626;
             --success: #16a34a;
             --warning: #f59e0b;
         }
@@ -362,6 +363,27 @@
             font-weight: 600;
         }
         
+        .alert-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--danger);
+            color: var(--white);
+            padding: 16px 24px;
+            text-align: center;
+            font-weight: 700;
+            display: none;
+            z-index: 1000;
+            animation: slideDown 0.3s ease;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+        
         #finishArea {
             display: none;
             text-align: center;
@@ -432,6 +454,10 @@
         .summary-value {
             font-weight: 700;
             color: var(--black);
+        }
+        
+        .summary-value.alert {
+            color: var(--danger);
         }
         
         .summary-value.success {
@@ -510,6 +536,10 @@
     </style>
 </head>
 <body>
+    <div class="alert-banner" id="alertBanner">
+        ⚠️ Has intentado salir del test. Este incidente ha sido registrado.
+    </div>
+    
     <img src="transparent-Photoroom (6).png" alt="Mind&Code" class="logo-floating">
     
     <div class="container">
@@ -523,9 +553,9 @@
                     <h3>📋 Instrucciones Importantes</h3>
                     <ul>
                         <li>Duración estimada: 25-30 minutos</li>
+                        <li>No cambies de pestaña ni minimices la ventana durante el test</li>
                         <li>Responde con honestidad - no hay respuestas correctas o incorrectas</li>
                         <li>Una vez iniciado, no puedes pausar el test</li>
-                        <li>Asegúrate de tener una conexión estable</li>
                     </ul>
                 </div>
                 
@@ -600,6 +630,10 @@
                         <span class="summary-value success" id="summaryQuestions">0</span>
                     </div>
                     <div class="summary-row">
+                        <span class="summary-label">Eventos de seguridad</span>
+                        <span class="summary-value" id="summaryAlerts">Ninguno</span>
+                    </div>
+                    <div class="summary-row">
                         <span class="summary-label">Estado de envío</span>
                         <span class="summary-value" id="summaryStatus">Enviando...</span>
                     </div>
@@ -627,6 +661,7 @@
         // Variables de estado
         let currentQuestion = 0;
         let responses = [];
+        let cheatEvents = [];
         let startTime;
         let email;
         let timerInterval;
@@ -768,12 +803,85 @@
             "No es útil revisar varias veces el trabajo."
         ];
         
-        function startTest() {
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            setupAntiCheat();
+        });
+        
+        // ==========================================
+        // ANTI-CHEAT RESTAURADO
+        // ==========================================
+        function setupAntiCheat() {
+            // Detectar cambio de pestaña
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && isTestRunning && currentQuestion < TOTAL_PREGUNTAS) {
+                    cheatEvents.push({
+                        type: 'cambio_pestana',
+                        time: new Date().toLocaleString(),
+                        question: currentQuestion + 1
+                    });
+                    showAlert();
+                }
+            });
+            
+            // Detectar salir de pantalla completa
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement && isTestRunning && currentQuestion < TOTAL_PREGUNTAS) {
+                    cheatEvents.push({
+                        type: 'salio_pantalla_completa',
+                        time: new Date().toLocaleString(),
+                        question: currentQuestion + 1
+                    });
+                    showAlert();
+                }
+            });
+            
+            // Bloquear copy/paste/context menu
+            ['copy', 'paste', 'cut', 'contextmenu'].forEach(evt => {
+                document.addEventListener(evt, e => {
+                    if (isTestRunning) {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+            });
+            
+            // Bloquear teclas de acceso rápido
+            document.addEventListener('keydown', e => {
+                if (!isTestRunning) return;
+                
+                if (e.ctrlKey || e.metaKey || e.altKey) {
+                    e.preventDefault();
+                    return false;
+                }
+                if (['F11', 'Escape', 'F12'].includes(e.key)) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        }
+        
+        function showAlert() {
+            const banner = document.getElementById('alertBanner');
+            banner.style.display = 'block';
+            setTimeout(() => {
+                banner.style.display = 'none';
+            }, 5000);
+        }
+        
+        async function startTest() {
             email = document.getElementById('emailInput').value.trim().toLowerCase();
             
             if (!email || !email.includes('@')) {
                 alert('Por favor ingresa un email válido');
                 return;
+            }
+            
+            // Intentar pantalla completa
+            try {
+                await document.documentElement.requestFullscreen();
+            } catch (e) {
+                console.log('Fullscreen no soportado');
             }
             
             isTestRunning = true;
@@ -861,6 +969,16 @@
             document.getElementById('summaryTime').textContent = `${mins} min ${secs} seg`;
             document.getElementById('summaryQuestions').textContent = responses.length;
             
+            // Mostrar eventos de seguridad
+            const alertsElement = document.getElementById('summaryAlerts');
+            if (cheatEvents.length === 0) {
+                alertsElement.textContent = 'Ninguno';
+                alertsElement.className = 'summary-value success';
+            } else {
+                alertsElement.textContent = `${cheatEvents.length} detectados`;
+                alertsElement.className = 'summary-value alert';
+            }
+            
             document.getElementById('loadingBox').style.display = 'block';
             
             // Obtener IP
@@ -878,11 +996,13 @@
                 type: 'test_complete',
                 email: email,
                 fecha: new Date().toLocaleString('es-ES'),
-                respuestas: responses, // Array completo de 132 respuestas
+                respuestas: responses,
                 tiempoTotal: totalTime,
                 ipAddress: ipAddress,
                 userAgent: navigator.userAgent,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                trampasCount: cheatEvents.length,
+                detalleTrampas: cheatEvents
             };
             
             console.log('Enviando datos:', testData);
@@ -944,6 +1064,11 @@
                     <strong>Datos para enviar manualmente:</strong><br>
                     <pre style="white-space: pre-wrap; word-break: break-all; font-size: 10px;">${JSON.stringify(testData, null, 2)}</pre>
                 `;
+            }
+            
+            // Salir de pantalla completa al terminar
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
             }
         }
     </script>
