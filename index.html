@@ -508,77 +508,7 @@
             overflow-y: auto;
         }
         
-        /* FULLSCREEN STYLES */
-        .fullscreen-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(26, 26, 26, 0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            backdrop-filter: blur(8px);
-        }
-        
-        .fullscreen-content {
-            background: var(--white);
-            padding: 48px;
-            border-radius: 20px;
-            text-align: center;
-            max-width: 500px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            animation: popIn 0.3s ease;
-        }
-        
-        @keyframes popIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-        
-        .fullscreen-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-        }
-        
-        .fullscreen-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: var(--black);
-        }
-        
-        .fullscreen-text {
-            color: var(--gray-600);
-            margin-bottom: 32px;
-            line-height: 1.6;
-        }
-        
-        .btn-fullscreen {
-            background: var(--primary);
-            color: var(--white);
-            border: none;
-            padding: 20px 40px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        .btn-fullscreen:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(99, 122, 5, 0.4);
-        }
-        
+        /* FULLSCREEN WARNING STYLES */
         .fullscreen-warning {
             position: fixed;
             top: 0;
@@ -607,6 +537,29 @@
             opacity: 0.9;
         }
         
+        .btn-fullscreen {
+            background: var(--white);
+            color: var(--danger);
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 30px;
+        }
+        
+        .btn-fullscreen:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        
         @media (max-width: 768px) {
             .logo-floating {
                 height: 60px;
@@ -631,11 +584,6 @@
                 gap: 16px;
                 align-items: flex-start;
             }
-            
-            .fullscreen-content {
-                padding: 32px 24px;
-                margin: 20px;
-            }
         }
     </style>
 </head>
@@ -644,26 +592,11 @@
         ⚠️ Has intentado salir del test. Este incidente ha sido registrado.
     </div>
     
-    <!-- Modal para activar pantalla completa -->
-    <div class="fullscreen-modal" id="fullscreenModal">
-        <div class="fullscreen-content">
-            <div class="fullscreen-icon">🖥️</div>
-            <h3 class="fullscreen-title">Modo Pantalla Completa Requerido</h3>
-            <p class="fullscreen-text">
-                Para garantizar la integridad de la evaluación, debes activar el modo pantalla completa. 
-                No podrás salir de este modo hasta completar el test.
-            </p>
-            <button class="btn-fullscreen" onclick="enterFullscreen()">
-                <span>⛶</span> Iniciar Pantalla Completa
-            </button>
-        </div>
-    </div>
-
     <!-- Advertencia si sale de pantalla completa -->
     <div class="fullscreen-warning" id="fullscreenWarning">
         <h2>⚠️ Test Pausado</h2>
         <p>Has salido del modo pantalla completa. Haz clic para reactivarlo y continuar.</p>
-        <button class="btn-fullscreen" style="margin-top: 30px;" onclick="returnToFullscreen()">
+        <button class="btn-fullscreen" onclick="returnToFullscreen()">
             <span>⛶</span> Volver a Pantalla Completa
         </button>
     </div>
@@ -684,7 +617,7 @@
                         <li>No cambies de pestaña ni minimices la ventana durante el test</li>
                         <li>Responde con honestidad - no hay respuestas correctas o incorrectas</li>
                         <li>Una vez iniciado, no puedes pausar el test</li>
-                        <li>Debes mantener el modo pantalla completa durante toda la evaluación</li>
+                        <li>El test se activará automáticamente en pantalla completa</li>
                     </ul>
                 </div>
                 
@@ -922,7 +855,9 @@ function enterFullscreen() {
     const elem = document.documentElement;
     
     if (elem.requestFullscreen) {
-        elem.requestFullscreen();
+        elem.requestFullscreen().catch(err => {
+            console.log('Error al activar fullscreen:', err);
+        });
     } else if (elem.webkitRequestFullscreen) {
         elem.webkitRequestFullscreen();
     } else if (elem.msRequestFullscreen) {
@@ -932,12 +867,21 @@ function enterFullscreen() {
 
 function returnToFullscreen() {
     enterFullscreen();
+    document.getElementById('fullscreenWarning').style.display = 'none';
+    
+    // Reanudar timer si estaba pausado
+    if (isTestRunning) {
+        clearInterval(timerInterval);
+        timerInterval = setInterval(updateTimer, 1000);
+    }
 }
 
 function handleFullscreenChange() {
     if (!isTestRunning) return;
     
-    if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+    const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+    
+    if (!isFullscreen) {
         // Salió de pantalla completa durante el test
         document.getElementById('fullscreenWarning').style.display = 'flex';
         
@@ -953,8 +897,9 @@ function handleFullscreenChange() {
         // Entró a pantalla completa
         document.getElementById('fullscreenWarning').style.display = 'none';
         
-        // Reanudar timer si estaba pausado
+        // Reanudar timer
         if (isTestRunning) {
+            clearInterval(timerInterval);
             timerInterval = setInterval(updateTimer, 1000);
         }
     }
@@ -1009,22 +954,20 @@ async function startTest() {
         return;
     }
     
-    // Verificar si está en pantalla completa
-    if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
-        alert('Debes activar el modo pantalla completa para comenzar. Haz clic en "Iniciar Pantalla Completa".');
-        return;
-    }
+    // Activar pantalla completa automáticamente
+    enterFullscreen();
     
-    document.getElementById('fullscreenModal').style.display = 'none';
-    
-    isTestRunning = true;
-    startTime = Date.now();
-    
-    document.getElementById('startArea').style.display = 'none';
-    document.getElementById('testArea').style.display = 'block';
-    
-    showQuestion();
-    timerInterval = setInterval(updateTimer, 1000);
+    // Pequeña espera para que el fullscreen se active
+    setTimeout(() => {
+        isTestRunning = true;
+        startTime = Date.now();
+        
+        document.getElementById('startArea').style.display = 'none';
+        document.getElementById('testArea').style.display = 'block';
+        
+        showQuestion();
+        timerInterval = setInterval(updateTimer, 1000);
+    }, 100);
 }
 
 function showQuestion() {
