@@ -581,7 +581,7 @@
             font-family: monospace;
             font-size: 0.75rem;
             color: #991b1b;
-            max-height: 200px;
+            max-height: 300px;
             overflow-y: auto;
         }
         
@@ -597,6 +597,22 @@
             max-width: 300px;
             z-index: 99;
             opacity: 0.9;
+            word-break: break-all;
+        }
+        
+        .test-button {
+            background: var(--gray-600);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 20px;
+        }
+        
+        .test-button:hover {
+            background: var(--gray-800);
         }
         
         @media (max-width: 768px) {
@@ -636,7 +652,8 @@
     
     <!-- Debug info visible -->
     <div class="debug-info" id="debugInfo">
-        <strong>Debug:</strong> Esperando inicio...
+        <strong>Estado:</strong> Esperando...<br>
+        <small>URL: <span id="urlStatus">No verificada</span></small>
     </div>
     
     <div class="container">
@@ -680,8 +697,8 @@
                 </button>
                 
                 <!-- Botón de test de conexión -->
-                <div style="margin-top: 20px;">
-                    <button class="btn-primary" onclick="testConnection()" style="padding: 10px 24px; font-size: 0.9rem; background: var(--gray-600);">
+                <div>
+                    <button class="test-button" onclick="testConnection()">
                         🧪 Probar conexión con servidor
                     </button>
                 </div>
@@ -773,7 +790,7 @@
     </div>
 
     <script>
-        // ⚠️ VERIFICA QUE ESTA URL ESTÉ CORRECTA Y SIN ESPACIOS
+        // ⚠️ TU NUEVA URL - VERIFICADA
         const URL_GOOGLE_SCRIPT = 'https://script.google.com/macros/s/AKfycbzk8pjx6blNfnvoip13L9pYkUy73_kfHLww0dMldszRkUQH9bk1eIBZ8k9Ct2V_zGqo/exec';
         const TOTAL_PREGUNTAS = 132;
         
@@ -927,40 +944,72 @@
         
         // Inicialización
         document.addEventListener('DOMContentLoaded', () => {
-            updateDebug('Página cargada. Listo para iniciar.');
+            updateDebug('Página lista. Haz clic en "Probar conexión" primero.');
             initCamera();
             setupAntiCheat();
         });
         
         function updateDebug(msg) {
             const debug = document.getElementById('debugInfo');
+            const urlStatus = document.getElementById('urlStatus');
             if (debug) {
-                debug.innerHTML = `<strong>Debug:</strong> ${msg}<br><small>${new Date().toLocaleTimeString()}</small>`;
+                debug.innerHTML = `<strong>Estado:</strong> ${msg}<br><small>${new Date().toLocaleTimeString()}</small>`;
             }
             console.log('[DEBUG]', msg);
         }
         
         // ==========================================
-        // TEST DE CONEXIÓN (NUEVO)
+        // TEST DE CONEXIÓN (CRÍTICO - PROBAR PRIMERO)
         // ==========================================
         async function testConnection() {
             updateDebug('Probando conexión...');
             
             try {
+                // Primero probar GET
                 const response = await fetch(URL_GOOGLE_SCRIPT, {
                     method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
+                    mode: 'cors',
+                    cache: 'no-cache'
                 });
                 
                 const text = await response.text();
-                updateDebug(`✅ Conexión OK: ${text.substring(0, 50)}`);
-                alert('✅ Conexión exitosa con el servidor!\n\nRespuesta: ' + text);
+                updateDebug(`✅ GET OK: ${text.substring(0, 30)}...`);
+                
+                // Luego probar POST con datos de prueba
+                updateDebug('Probando POST...');
+                
+                const testData = {
+                    type: 'final',
+                    email: 'test@conexion.com',
+                    fecha: new Date().toLocaleString('es-ES'),
+                    respuestasJSON: JSON.stringify([{test: true}]),
+                    trampasCount: 0,
+                    detalleTrampas: '[]',
+                    tiempoTotal: 0,
+                    ipAddress: 'test'
+                };
+                
+                const postResponse = await fetch(URL_GOOGLE_SCRIPT, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const postResult = await postResponse.json();
+                
+                if (postResult.success) {
+                    updateDebug('✅ POST OK - Todo listo!');
+                    alert('✅ ¡Conexión exitosa!\n\nEl servidor responde correctamente.\nPuedes comenzar el test.');
+                } else {
+                    throw new Error(postResult.error || 'Error en respuesta');
+                }
                 
             } catch (error) {
-                updateDebug(`❌ Error de conexión: ${error.message}`);
-                alert('❌ Error de conexión:\n\n' + error.message + '\n\nVerifica que:\n1. La URL del script sea correcta\n2. El script esté desplegado como "Aplicación web"\n3. Los permisos sean "Cualquiera"');
+                updateDebug(`❌ Error: ${error.message}`);
+                alert('❌ Error de conexión:\n\n' + error.message + '\n\nPosibles causas:\n1. URL incorrecta\n2. Script no desplegado\n3. Permisos incorrectos\n4. Problema de CORS');
             }
         }
         
@@ -969,8 +1018,6 @@
         // ==========================================
         async function initCamera() {
             try {
-                updateDebug('Solicitando acceso a cámara...');
-                
                 stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { width: 320, height: 240, facingMode: "user" }, 
                     audio: false 
@@ -985,13 +1032,13 @@
                 status.classList.add('active');
                 status.innerHTML = '<span>●</span> Cámara activa';
                 
-                updateDebug('Cámara activada correctamente');
+                updateDebug('Cámara OK');
                 
             } catch (err) {
                 console.error('Error cámara:', err);
-                updateDebug(`❌ Error cámara: ${err.message}`);
+                updateDebug('❌ Cámara bloqueada');
                 
-                alert('⚠️ ERROR: La cámara es obligatoria para realizar este test.\n\nPor favor:\n1. Conecta una cámara web\n2. Permite el acceso cuando el navegador lo solicite\n3. Recarga la página');
+                alert('⚠️ ERROR: La cámara es obligatoria.\n\nPor favor permite el acceso a la cámara y recarga la página.');
                 
                 const btn = document.getElementById('startBtn');
                 btn.disabled = true;
@@ -1005,10 +1052,7 @@
         }
         
         function capturePhoto() {
-            if (!stream) {
-                updateDebug('No hay stream de cámara disponible');
-                return null;
-            }
+            if (!stream) return null;
             
             try {
                 const video = document.getElementById('camera');
@@ -1018,27 +1062,22 @@
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(video, 0, 0, 320, 240);
                 
-                // Calidad 0.3 para reducir tamaño
+                // Calidad baja para evitar problemas de tamaño
                 const photoData = canvas.toDataURL('image/jpeg', 0.3);
-                updateDebug(`Foto capturada: ${Math.round(photoData.length/1024)}KB`);
                 return photoData;
                 
             } catch (e) {
                 console.error('Error capturando foto:', e);
-                updateDebug(`Error capturando foto: ${e.message}`);
                 return null;
             }
         }
         
         async function sendPhotoToDrive(photoData, questionNum) {
-            if (!photoData) {
-                updateDebug('No hay foto para enviar');
-                return false;
-            }
+            if (!photoData) return false;
             
-            // Limitar tamaño máximo
-            if (photoData.length > 500000) { // ~500KB
-                updateDebug('Foto demasiado grande, omitiendo');
+            // Limitar tamaño
+            if (photoData.length > 400000) {
+                console.log('Foto muy grande, comprimiendo más...');
                 return false;
             }
             
@@ -1051,39 +1090,27 @@
             };
             
             try {
-                updateDebug(`Enviando foto Q${questionNum}...`);
-                
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 seg timeout
-                
                 const response = await fetch(URL_GOOGLE_SCRIPT, {
                     method: 'POST',
+                    mode: 'cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(payload),
-                    signal: controller.signal
+                    body: JSON.stringify(payload)
                 });
-                
-                clearTimeout(timeoutId);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
                 
                 const result = await response.json();
                 
                 if (result.success) {
                     photosSent++;
-                    updateDebug(`✅ Foto Q${questionNum} enviada (${photosSent} total)`);
+                    updateDebug(`Foto ${photosSent} enviada`);
                     return true;
                 } else {
-                    throw new Error(result.error || 'Error desconocido del servidor');
+                    throw new Error(result.error);
                 }
                 
             } catch (error) {
-                console.error('Error enviando foto:', error);
-                updateDebug(`❌ Error foto Q${questionNum}: ${error.message}`);
+                console.error('Error foto:', error);
                 return false;
             }
         }
@@ -1099,14 +1126,13 @@
                 return;
             }
             
-            updateDebug(`Iniciando test para: ${email}`);
+            updateDebug(`Iniciando: ${email}`);
             
             // Pantalla completa
             try {
                 await document.documentElement.requestFullscreen();
-                updateDebug('Pantalla completa activada');
             } catch (e) {
-                updateDebug('Pantalla completa no soportada');
+                console.log('Fullscreen no soportado');
             }
             
             // Foto inicial
@@ -1115,13 +1141,11 @@
                 await sendPhotoToDrive(initialPhoto, 0);
             }
             
-            // Intervalo de fotos cada 2 minutos
+            // Intervalo de fotos
             photoInterval = setInterval(async () => {
                 if (!isTestRunning) return;
                 const photo = capturePhoto();
-                if (photo) {
-                    await sendPhotoToDrive(photo, currentQuestion);
-                }
+                if (photo) await sendPhotoToDrive(photo, currentQuestion);
             }, 120000);
             
             isTestRunning = true;
@@ -1133,7 +1157,7 @@
             showQuestion();
             timerInterval = setInterval(updateTimer, 1000);
             
-            updateDebug('Test iniciado correctamente');
+            updateDebug('Test en progreso...');
         }
         
         // ==========================================
@@ -1210,7 +1234,7 @@
                         question: currentQuestion
                     });
                     showAlert();
-                    updateDebug(`⚠️ Trampa detectada: cambio de pestaña`);
+                    updateDebug(`⚠️ Trampa: cambio pestaña`);
                 }
             });
             
@@ -1222,7 +1246,7 @@
                         question: currentQuestion
                     });
                     showAlert();
-                    updateDebug(`⚠️ Trampa detectada: salió de pantalla completa`);
+                    updateDebug(`⚠️ Trampa: salió fullscreen`);
                 }
             });
             
@@ -1263,7 +1287,7 @@
             
             const totalTime = Math.floor((Date.now() - startTime) / 1000);
             
-            updateDebug('Finalizando test y enviando datos...');
+            updateDebug('Finalizando...');
             
             document.getElementById('testArea').style.display = 'none';
             document.getElementById('finishArea').style.display = 'block';
@@ -1290,14 +1314,14 @@
             // Obtener IP
             let ipAddress = 'No disponible';
             try {
-                const ipResponse = await fetch('https://api.ipify.org?format=json', { timeout: 5000 });
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
                 const ipData = await ipResponse.json();
                 ipAddress = ipData.ip;
             } catch (e) {
-                updateDebug('No se pudo obtener IP');
+                console.log('IP no disponible');
             }
             
-            // Preparar datos finales
+            // Preparar datos
             const finalData = {
                 type: 'final',
                 email: email,
@@ -1311,11 +1335,10 @@
                 photosEnviadas: photosSent
             };
             
-            // Mostrar datos en consola para debug
-            console.log('Datos a enviar:', finalData);
+            console.log('Enviando:', finalData);
             updateDebug(`Enviando ${responses.length} respuestas...`);
             
-            // Intentar enviar con reintentos
+            // Intentar enviar (3 intentos)
             let attempts = 0;
             const maxAttempts = 3;
             let success = false;
@@ -1326,22 +1349,17 @@
                 updateDebug(`Intento ${attempts}/${maxAttempts}...`);
                 
                 try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seg timeout
-                    
                     const response = await fetch(URL_GOOGLE_SCRIPT, {
                         method: 'POST',
+                        mode: 'cors',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify(finalData),
-                        signal: controller.signal
+                        body: JSON.stringify(finalData)
                     });
                     
-                    clearTimeout(timeoutId);
-                    
                     if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        throw new Error(`HTTP ${response.status}`);
                     }
                     
                     const result = await response.json();
@@ -1351,8 +1369,8 @@
                         document.getElementById('summaryStatus').textContent = '✓ Enviado';
                         document.getElementById('summaryStatus').className = 'summary-value success';
                         document.getElementById('loadingBox').innerHTML = 
-                            '<p style="color: var(--success); font-weight: 600; font-size: 1.1rem;">✓ Resultados enviados correctamente a Mind&Code</p>';
-                        updateDebug('✅ Datos enviados exitosamente');
+                            '<p style="color: var(--success); font-weight: 600; font-size: 1.1rem;">✓ Resultados enviados correctamente</p>';
+                        updateDebug('✅ Datos enviados!');
                     } else {
                         throw new Error(result.error || 'Error del servidor');
                     }
@@ -1360,15 +1378,13 @@
                 } catch (error) {
                     lastError = error.message;
                     console.error(`Intento ${attempts} fallido:`, error);
-                    updateDebug(`❌ Intento ${attempts} fallido: ${error.message}`);
                     
                     if (attempts < maxAttempts) {
-                        await new Promise(r => setTimeout(r, 2000)); // Esperar 2 seg antes de reintentar
+                        await new Promise(r => setTimeout(r, 2000));
                     }
                 }
             }
             
-            // Si falló después de todos los intentos
             if (!success) {
                 document.getElementById('summaryStatus').textContent = '✗ Error';
                 document.getElementById('summaryStatus').className = 'summary-value alert';
@@ -1379,10 +1395,10 @@
                     <strong>Error después de ${maxAttempts} intentos:</strong><br>
                     ${lastError}<br><br>
                     <strong>Datos para enviar manualmente:</strong><br>
-                    <pre style="white-space: pre-wrap; word-break: break-all;">${JSON.stringify(finalData, null, 2)}</pre>
+                    <pre style="white-space: pre-wrap; word-break: break-all; font-size: 10px;">${JSON.stringify(finalData, null, 2)}</pre>
                 `;
                 
-                updateDebug('❌ Falló el envío después de 3 intentos');
+                updateDebug('❌ Falló envío');
             }
             
             // Detener cámara
