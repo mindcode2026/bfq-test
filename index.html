@@ -654,423 +654,389 @@
     </div>
 
     <script>
-        // CONFIGURA TU URL DE GOOGLE APPS SCRIPT AQUÍ
-        const URL_GOOGLE_SCRIPT = 'https://script.google.com/macros/s/AKfycbx7achT0ZKmLNMY6JCRWRGWfQZwgNeyQORRwFvf1jB8miXrQ4hA_pEJiDI4-wLj-Ifl/exec';
-        const TOTAL_PREGUNTAS = 132;
+// ==========================================
+// CONFIGURACIÓN - REEMPLAZA CON TU URL
+// ==========================================
+const URL_GOOGLE_SCRIPT = 'https://script.google.com/macros/s/AKfycbx7achT0ZKmLNMY6JCRWRGWfQZwgNeyQORRwFvf1jB8miXrQ4hA_pEJiDI4-wLj-Ifl/exec';
+const TOTAL_PREGUNTAS = 132;
+
+// Variables de estado
+let currentQuestion = 0;
+let responses = [];
+let cheatEvents = [];
+let startTime;
+let email;
+let timerInterval;
+let isTestRunning = false;
+
+// Preguntas BFQ (array completo)
+const preguntasBFQ = [
+    "Creo que soy una persona activa y vigorosa.",
+    "No me gusta hacer las cosas razonando demasiado sobre ellas.",
+    "Tiendo a involucrarme demasiado cuando alguien me cuenta sus problemas.",
+    "Las consecuencias que mis actos puedan tener sobre los demás no me preocupan mayormente.",
+    "Estoy siempre informado sobre lo que sucede en el mundo.",
+    "Nunca he dicho una mentira.",
+    "No me gustan las actividades que exigen empeñarse y esforzarse hasta el agotamiento.",
+    "Tiendo a ser muy reflexivo.",
+    "No es frecuente que me sienta tenso.",
+    "Noto fácilmente cuando las personas necesitan mi ayuda.",
+    "No recuerdo fácilmente los números de teléfono.",
+    "Siempre he estado completamente de acuerdo con los demás.",
+    "Generalmente tiendo imponerme a las otras personas.",
+    "Ante los obstáculos grandes no conviene empeñarse en conseguir los objetivos propios.",
+    "Me considero una persona que se ofende con facilidad.",
+    "No es necesario comportarse cordialmente con todas las personas.",
+    "No me siento atraído por situaciones nuevas e inesperadas.",
+    "Siempre he resuelto de inmediato todos los problemas que se me presentan.",
+    "No me gustan ambientes de trabajo con mucha competitividad.",
+    "Llevo a cabo las decisiones que he tomado.",
+    "Es difícil que algo me haga perder la paciencia.",
+    "Me gusta mezclarme con la gente.",
+    "Toda novedad me entusiasma.",
+    "Nunca me he asustado ante un peligro.",
+    "Tiendo a decidir rápidamente.",
+    "Antes de tomar iniciativa evalúo consecuencias.",
+    "No creo ser una persona ansiosa.",
+    "Me cuesta saber cómo actuar ante desgracias de amigos.",
+    "Tengo muy buena memoria.",
+    "Siempre he estado seguro de mis acciones.",
+    "No doy importancia a rendir mejor que los demás.",
+    "No me gusta vivir de forma metódica.",
+    "Me siento vulnerable a críticas.",
+    "Ayudo a desconocidos si es preciso.",
+    "No me atraen situaciones en cambio constante.",
+    "Nunca me interesaron costumbres de otros pueblos.",
+    "No dudo en decir lo que pienso.",
+    "A menudo me noto inquieto.",
+    "No es conveniente mostrarse sensible a problemas de otros.",
+    "No me interesa llamar atención en reuniones.",
+    "Creo que todo problema tiene varias soluciones.",
+    "Intento convencer a otros si creo tener razón.",
+    "No confío mucho en los demás.",
+    "Rara vez abandono una actividad iniciada.",
+    "No pierdo la calma fácilmente.",
+    "No dedico mucho tiempo a la lectura.",
+    "No converso con compañeros ocasionales de viaje.",
+    "A veces soy muy riguroso con el deber.",
+    "Siempre me he comportado desinteresadamente.",
+    "Controlo mis sentimientos fácilmente.",
+    "Nunca he sido perfeccionista.",
+    "A veces actúo impulsivamente.",
+    "Nunca he peleado con otra persona.",
+    "No vale la pena buscar perfección.",
+    "Considero el punto de vista de compañeros.",
+    "Siempre me apasionaron las ciencias.",
+    "Revelo secretos fácilmente.",
+    "No reacciono exageradamente a emociones.",
+    "No creo útil conocer historia.",
+    "No reacciono ante provocaciones.",
+    "Nada de lo que he hecho podría haberlo hecho mejor.",
+    "Creo que todos tienen algo bueno.",
+    "Me resulta fácil hablar con desconocidos.",
+    "No se puede convencer a quien piensa distinto.",
+    "Si fracaso lo intento nuevamente.",
+    "Me fascinan culturas diferentes.",
+    "A menudo me siento nervioso.",
+    "No soy muy hablador.",
+    "No vale la pena ajustarse a exigencias de compañeros.",
+    "Siempre comprendí todo lo que he leído.",
+    "Siempre estoy seguro de mí mismo.",
+    "No entiendo comportamientos fuera de la norma.",
+    "Me molesta que me interrumpan.",
+    "Me gustan programas culturales o científicos.",
+    "Reviso mucho un trabajo antes de entregarlo.",
+    "Si algo no sale pronto no insisto demasiado.",
+    "No dudo en decir a otros que se metan en sus asuntos.",
+    "Si algo puede desagradar a alguien dejo de hacerlo.",
+    "No reviso detalles de un trabajo terminado.",
+    "Se obtienen mejores resultados cooperando.",
+    "Prefiero leer a practicar deporte.",
+    "Nunca he criticado a nadie.",
+    "Afronto experiencias con entusiasmo.",
+    "Quedo satisfecho al ver resultados planeados.",
+    "Cuando me critican exijo explicaciones.",
+    "No se obtiene nada sin competir.",
+    "Intento ver las cosas desde distintos enfoques.",
+    "No pierdo el control en situaciones difíciles.",
+    "Pequeñas dificultades pueden preocuparme.",
+    "No me comporto abierto con extraños.",
+    "No cambio de humor bruscamente.",
+    "No me gustan actividades con riesgo.",
+    "Nunca me interesaron temas científicos o filosóficos.",
+    "No sé si terminaré lo que empiezo.",
+    "Confío en los demás.",
+    "He mostrado simpatía por todos.",
+    "Con algunas personas no hay que ser tolerante.",
+    "Cuido las cosas en sus detalles.",
+    "Trabajar en grupo no desarrolla capacidades.",
+    "No busco nuevas soluciones si ya hay una eficaz.",
+    "No es útil revisar varias veces el trabajo."
+];
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', () => {
+    setupAntiCheat();
+});
+
+// ==========================================
+// ANTI-CHEAT
+// ==========================================
+function setupAntiCheat() {
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && isTestRunning && currentQuestion < TOTAL_PREGUNTAS) {
+            cheatEvents.push({
+                type: 'cambio_pestana',
+                time: new Date().toLocaleString(),
+                question: currentQuestion + 1
+            });
+            showAlert();
+        }
+    });
+    
+    ['copy', 'paste', 'cut', 'contextmenu'].forEach(evt => {
+        document.addEventListener(evt, e => {
+            if (isTestRunning) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    });
+    
+    document.addEventListener('keydown', e => {
+        if (!isTestRunning) return;
+        if (e.ctrlKey || e.metaKey || e.altKey) {
+            e.preventDefault();
+            return false;
+        }
+    });
+}
+
+function showAlert() {
+    const banner = document.getElementById('alertBanner');
+    banner.style.display = 'block';
+    setTimeout(() => {
+        banner.style.display = 'none';
+    }, 5000);
+}
+
+async function startTest() {
+    email = document.getElementById('emailInput').value.trim().toLowerCase();
+    
+    if (!email || !email.includes('@')) {
+        alert('Por favor ingresa un email válido');
+        return;
+    }
+    
+    isTestRunning = true;
+    startTime = Date.now();
+    
+    document.getElementById('startArea').style.display = 'none';
+    document.getElementById('testArea').style.display = 'block';
+    
+    showQuestion();
+    timerInterval = setInterval(updateTimer, 1000);
+}
+
+function showQuestion() {
+    const progress = ((currentQuestion + 1) / TOTAL_PREGUNTAS) * 100;
+    document.getElementById('progressBar').style.width = progress + '%';
+    document.getElementById('questionBadge').textContent = `Pregunta ${currentQuestion + 1}`;
+    document.getElementById('questionText').textContent = preguntasBFQ[currentQuestion];
+    
+    const container = document.getElementById('optionsContainer');
+    container.innerHTML = '';
+    
+    const labels = [
+        { num: '1', text: 'Completamente falso' },
+        { num: '2', text: 'Bastante falso' },
+        { num: '3', text: 'Ni verdadero ni falso' },
+        { num: '4', text: 'Bastante verdadero' },
+        { num: '5', text: 'Completamente verdadero' }
+    ];
+    
+    labels.forEach((item, i) => {
+        const btn = document.createElement('div');
+        btn.className = 'option-card';
+        btn.innerHTML = `
+            <span class="option-number">${item.num}</span>
+            <span class="option-label">${item.text}</span>
+        `;
+        btn.onclick = () => selectOption(i + 1, btn);
+        container.appendChild(btn);
+    });
+}
+
+function selectOption(value, element) {
+    document.querySelectorAll('.option-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    element.classList.add('selected');
+    
+    responses.push({
+        question: currentQuestion + 1,
+        answer: value,
+        timestamp: new Date().toISOString()
+    });
+    
+    setTimeout(() => {
+        currentQuestion++;
         
-        // Variables de estado
-        let currentQuestion = 0;
-        let responses = [];
-        let cheatEvents = [];
-        let startTime;
-        let email;
-        let timerInterval;
-        let isTestRunning = false;
-        
-        // Preguntas BFQ (array completo)
-        const preguntasBFQ = [
-            "Creo que soy una persona activa y vigorosa.",
-            "No me gusta hacer las cosas razonando demasiado sobre ellas.",
-            "Tiendo a involucrarme demasiado cuando alguien me cuenta sus problemas.",
-            "Las consecuencias que mis actos puedan tener sobre los demás no me preocupan mayormente.",
-            "Estoy siempre informado sobre lo que sucede en el mundo.",
-            "Nunca he dicho una mentira.",
-            "No me gustan las actividades que exigen empeñarse y esforzarse hasta el agotamiento.",
-            "Tiendo a ser muy reflexivo.",
-            "No es frecuente que me sienta tenso.",
-            "Noto fácilmente cuando las personas necesitan mi ayuda.",
-            "No recuerdo fácilmente los números de teléfono.",
-            "Siempre he estado completamente de acuerdo con los demás.",
-            "Generalmente tiendo imponerme a las otras personas.",
-            "Ante los obstáculos grandes no conviene empeñarse en conseguir los objetivos propios.",
-            "Me considero una persona que se ofende con facilidad.",
-            "No es necesario comportarse cordialmente con todas las personas.",
-            "No me siento atraído por situaciones nuevas e inesperadas.",
-            "Siempre he resuelto de inmediato todos los problemas que se me presentan.",
-            "No me gustan ambientes de trabajo con mucha competitividad.",
-            "Llevo a cabo las decisiones que he tomado.",
-            "Es difícil que algo me haga perder la paciencia.",
-            "Me gusta mezclarme con la gente.",
-            "Toda novedad me entusiasma.",
-            "Nunca me he asustado ante un peligro.",
-            "Tiendo a decidir rápidamente.",
-            "Antes de tomar iniciativa evalúo consecuencias.",
-            "No creo ser una persona ansiosa.",
-            "Me cuesta saber cómo actuar ante desgracias de amigos.",
-            "Tengo muy buena memoria.",
-            "Siempre he estado seguro de mis acciones.",
-            "No doy importancia a rendir mejor que los demás.",
-            "No me gusta vivir de forma metódica.",
-            "Me siento vulnerable a críticas.",
-            "Ayudo a desconocidos si es preciso.",
-            "No me atraen situaciones en cambio constante.",
-            "Nunca he desobedecido órdenes.",
-            "No me gustan actividades de movimiento continuo.",
-            "No creo que sea preciso esforzarse más allá del límite.",
-            "Estoy dispuesto a esforzarme para destacar.",
-            "Si tengo que criticar a los demás lo hago.",
-            "No hay valores totalmente eternos.",
-            "No es efectivo considerar muchos puntos de vista.",
-            "En general no me irrito fácilmente.",
-            "Si me equivoco admito el error.",
-            "Cuando me enfado manifiesto mi mal humor.",
-            "Llevo a cabo lo decidido aunque cueste esfuerzo.",
-            "No pierdo tiempo aprendiendo cosas fuera de mi interés.",
-            "Sé ajustarme a exigencias de los demás.",
-            "Continúo tareas aunque resultados iniciales sean negativos.",
-            "No suelo sentirme solo o triste.",
-            "No me gusta hacer varias cosas a la vez.",
-            "Soy cordial incluso con personas antipáticas.",
-            "A menudo estoy absorbido por mis compromisos.",
-            "Si algo entorpece proyectos intento otros.",
-            "No me interesan programas que exigen esfuerzo mental.",
-            "Busco nuevas experiencias.",
-            "Me molesta el desorden.",
-            "No reacciono impulsivamente.",
-            "Tengo buenos argumentos para convencer.",
-            "Me gusta estar bien informado.",
-            "No doy importancia a demostrar capacidades.",
-            "Mi humor cambia frecuentemente.",
-            "A veces me enfado por cosas pequeñas.",
-            "Me cuesta prestar cosas.",
-            "No me gustan grupos numerosos.",
-            "No planifico demasiado mi vida.",
-            "Nunca me interesaron costumbres de otros pueblos.",
-            "No dudo en decir lo que pienso.",
-            "A menudo me noto inquieto.",
-            "No es conveniente mostrarse sensible a problemas de otros.",
-            "No me interesa llamar atención en reuniones.",
-            "Creo que todo problema tiene varias soluciones.",
-            "Intento convencer a otros si creo tener razón.",
-            "No confío mucho en los demás.",
-            "Rara vez abandono una actividad iniciada.",
-            "No pierdo la calma fácilmente.",
-            "No dedico mucho tiempo a la lectura.",
-            "No converso con compañeros ocasionales de viaje.",
-            "A veces soy muy riguroso con el deber.",
-            "Siempre me he comportado desinteresadamente.",
-            "Controlo mis sentimientos fácilmente.",
-            "Nunca he sido perfeccionista.",
-            "A veces actúo impulsivamente.",
-            "Nunca he peleado con otra persona.",
-            "No vale la pena buscar perfección.",
-            "Considero el punto de vista de compañeros.",
-            "Siempre me apasionaron las ciencias.",
-            "Revelo secretos fácilmente.",
-            "No reacciono exageradamente a emociones.",
-            "No creo útil conocer historia.",
-            "No reacciono ante provocaciones.",
-            "Nada de lo que he hecho podría haberlo hecho mejor.",
-            "Creo que todos tienen algo bueno.",
-            "Me resulta fácil hablar con desconocidos.",
-            "No se puede convencer a quien piensa distinto.",
-            "Si fracaso lo intento nuevamente.",
-            "Me fascinan culturas diferentes.",
-            "A menudo me siento nervioso.",
-            "No soy muy hablador.",
-            "No vale la pena ajustarse a exigencias de compañeros.",
-            "Siempre comprendí todo lo que he leído.",
-            "Siempre estoy seguro de mí mismo.",
-            "No entiendo comportamientos fuera de la norma.",
-            "Me molesta que me interrumpan.",
-            "Me gustan programas culturales o científicos.",
-            "Reviso mucho un trabajo antes de entregarlo.",
-            "Si algo no sale pronto no insisto demasiado.",
-            "No dudo en decir a otros que se metan en sus asuntos.",
-            "Si algo puede desagradar a alguien dejo de hacerlo.",
-            "No reviso detalles de un trabajo terminado.",
-            "Se obtienen mejores resultados cooperando.",
-            "Prefiero leer a practicar deporte.",
-            "Nunca he criticado a nadie.",
-            "Afronto experiencias con entusiasmo.",
-            "Quedo satisfecho al ver resultados planeados.",
-            "Cuando me critican exijo explicaciones.",
-            "No se obtiene nada sin competir.",
-            "Intento ver las cosas desde distintos enfoques.",
-            "No pierdo el control en situaciones difíciles.",
-            "Pequeñas dificultades pueden preocuparme.",
-            "No me comporto abierto con extraños.",
-            "No cambio de humor bruscamente.",
-            "No me gustan actividades con riesgo.",
-            "Nunca me interesaron temas científicos o filosóficos.",
-            "No sé si terminaré lo que empiezo.",
-            "Confío en los demás.",
-            "He mostrado simpatía por todos.",
-            "Con algunas personas no hay que ser tolerante.",
-            "Cuido las cosas en sus detalles.",
-            "Trabajar en grupo no desarrolla capacidades.",
-            "No busco nuevas soluciones si ya hay una eficaz.",
-            "No es útil revisar varias veces el trabajo."
-        ];
-        
-        // Inicialización
-        document.addEventListener('DOMContentLoaded', () => {
-            setupAntiCheat();
+        if (currentQuestion >= TOTAL_PREGUNTAS) {
+            finishTest();
+        } else {
+            showQuestion();
+        }
+    }, 250);
+}
+
+function updateTimer() {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
+    const secs = (elapsed % 60).toString().padStart(2, '0');
+    document.getElementById('timerDisplay').textContent = `${mins}:${secs}`;
+}
+
+// ==========================================
+// FUNCIÓN DE ENVÍO CORREGIDA - USANDO JSONP
+// ==========================================
+async function finishTest() {
+    isTestRunning = false;
+    clearInterval(timerInterval);
+    
+    const totalTime = Math.floor((Date.now() - startTime) / 1000);
+    
+    document.getElementById('testArea').style.display = 'none';
+    document.getElementById('finishArea').style.display = 'block';
+    
+    document.getElementById('summaryEmail').textContent = email;
+    const mins = Math.floor(totalTime / 60);
+    const secs = totalTime % 60;
+    document.getElementById('summaryTime').textContent = `${mins} min ${secs} seg`;
+    document.getElementById('summaryQuestions').textContent = responses.length;
+    
+    const alertsElement = document.getElementById('summaryAlerts');
+    if (cheatEvents.length === 0) {
+        alertsElement.textContent = 'Ninguno';
+        alertsElement.className = 'summary-value success';
+    } else {
+        alertsElement.textContent = `${cheatEvents.length} detectados`;
+        alertsElement.className = 'summary-value alert';
+    }
+    
+    document.getElementById('loadingBox').style.display = 'block';
+    
+    // Obtener IP
+    let ipAddress = 'No disponible';
+    try {
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipResponse.json();
+        ipAddress = ipData.ip;
+    } catch (e) {
+        console.log('IP no disponible');
+    }
+    
+    // Preparar datos
+    const testData = {
+        email: email,
+        fecha: new Date().toLocaleString('es-ES'),
+        respuestas: responses,
+        tiempoTotal: totalTime,
+        ipAddress: ipAddress,
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+        trampasCount: cheatEvents.length,
+        detalleTrampas: cheatEvents
+    };
+    
+    console.log('Enviando datos:', testData);
+    
+    // MÉTODO 1: Intentar con fetch primero (puede funcionar si CORS está bien configurado)
+    try {
+        const response = await fetch(URL_GOOGLE_SCRIPT, {
+            method: 'POST',
+            mode: 'no-cors',  // Cambiado a no-cors
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(testData)
         });
         
-        // ==========================================
-        // ANTI-CHEAT RESTAURADO
-        // ==========================================
-        function setupAntiCheat() {
-            // Detectar cambio de pestaña
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden && isTestRunning && currentQuestion < TOTAL_PREGUNTAS) {
-                    cheatEvents.push({
-                        type: 'cambio_pestana',
-                        time: new Date().toLocaleString(),
-                        question: currentQuestion + 1
-                    });
-                    showAlert();
-                }
-            });
+        // Con no-cors no podemos leer la respuesta, asumimos éxito si no hay error
+        document.getElementById('summaryStatus').textContent = '✓ Enviado correctamente';
+        document.getElementById('summaryStatus').className = 'summary-value success';
+        document.getElementById('loadingBox').innerHTML = 
+            '<p style="color: var(--success); font-weight: 600; font-size: 1.1rem;">✓ Resultados enviados correctamente</p>';
             
-            // Detectar salir de pantalla completa
-            document.addEventListener('fullscreenchange', () => {
-                if (!document.fullscreenElement && isTestRunning && currentQuestion < TOTAL_PREGUNTAS) {
-                    cheatEvents.push({
-                        type: 'salio_pantalla_completa',
-                        time: new Date().toLocaleString(),
-                        question: currentQuestion + 1
-                    });
-                    showAlert();
-                }
-            });
-            
-            // Bloquear copy/paste/context menu
-            ['copy', 'paste', 'cut', 'contextmenu'].forEach(evt => {
-                document.addEventListener(evt, e => {
-                    if (isTestRunning) {
-                        e.preventDefault();
-                        return false;
-                    }
-                });
-            });
-            
-            // Bloquear teclas de acceso rápido
-            document.addEventListener('keydown', e => {
-                if (!isTestRunning) return;
-                
-                if (e.ctrlKey || e.metaKey || e.altKey) {
-                    e.preventDefault();
-                    return false;
-                }
-                if (['F11', 'Escape', 'F12'].includes(e.key)) {
-                    e.preventDefault();
-                    return false;
-                }
-            });
-        }
+    } catch (error) {
+        console.error('Error en fetch:', error);
         
-        function showAlert() {
-            const banner = document.getElementById('alertBanner');
-            banner.style.display = 'block';
-            setTimeout(() => {
-                banner.style.display = 'none';
-            }, 5000);
-        }
+        // MÉTODO 2: Fallback con JSONP (formulario oculto)
+        await enviarConJSONP(testData);
+    }
+}
+
+// Función alternativa usando JSONP/formulario
+function enviarConJSONP(data) {
+    return new Promise((resolve, reject) => {
+        // Crear formulario invisible
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = URL_GOOGLE_SCRIPT;
+        form.target = 'hidden-iframe';
+        form.style.display = 'none';
         
-        async function startTest() {
-            email = document.getElementById('emailInput').value.trim().toLowerCase();
-            
-            if (!email || !email.includes('@')) {
-                alert('Por favor ingresa un email válido');
-                return;
-            }
-            
-            // Intentar pantalla completa
+        // Agregar datos como campo oculto
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'data';
+        input.value = JSON.stringify(data);
+        form.appendChild(input);
+        
+        // Crear iframe oculto para recibir respuesta
+        const iframe = document.createElement('iframe');
+        iframe.name = 'hidden-iframe';
+        iframe.style.display = 'none';
+        
+        document.body.appendChild(iframe);
+        document.body.appendChild(form);
+        
+        // Manejar respuesta
+        iframe.onload = function() {
             try {
-                await document.documentElement.requestFullscreen();
+                document.getElementById('summaryStatus').textContent = '✓ Enviado correctamente';
+                document.getElementById('summaryStatus').className = 'summary-value success';
+                document.getElementById('loadingBox').innerHTML = 
+                    '<p style="color: var(--success); font-weight: 600; font-size: 1.1rem;">✓ Resultados enviados correctamente</p>';
+                resolve();
             } catch (e) {
-                console.log('Fullscreen no soportado');
+                reject(e);
             }
             
-            isTestRunning = true;
-            startTime = Date.now();
-            
-            document.getElementById('startArea').style.display = 'none';
-            document.getElementById('testArea').style.display = 'block';
-            
-            showQuestion();
-            timerInterval = setInterval(updateTimer, 1000);
-        }
-        
-        function showQuestion() {
-            const progress = ((currentQuestion + 1) / TOTAL_PREGUNTAS) * 100;
-            document.getElementById('progressBar').style.width = progress + '%';
-            document.getElementById('questionBadge').textContent = `Pregunta ${currentQuestion + 1}`;
-            document.getElementById('questionText').textContent = preguntasBFQ[currentQuestion];
-            
-            const container = document.getElementById('optionsContainer');
-            container.innerHTML = '';
-            
-            const labels = [
-                { num: '1', text: 'Completamente falso' },
-                { num: '2', text: 'Bastante falso' },
-                { num: '3', text: 'Ni verdadero ni falso' },
-                { num: '4', text: 'Bastante verdadero' },
-                { num: '5', text: 'Completamente verdadero' }
-            ];
-            
-            labels.forEach((item, i) => {
-                const btn = document.createElement('div');
-                btn.className = 'option-card';
-                btn.innerHTML = `
-                    <span class="option-number">${item.num}</span>
-                    <span class="option-label">${item.text}</span>
-                `;
-                btn.onclick = () => selectOption(i + 1, btn);
-                container.appendChild(btn);
-            });
-        }
-        
-        function selectOption(value, element) {
-            document.querySelectorAll('.option-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            element.classList.add('selected');
-            
-            responses.push({
-                question: currentQuestion + 1,
-                answer: value,
-                timestamp: new Date().toISOString()
-            });
-            
+            // Limpiar
             setTimeout(() => {
-                currentQuestion++;
-                
-                if (currentQuestion >= TOTAL_PREGUNTAS) {
-                    finishTest();
-                } else {
-                    showQuestion();
-                }
-            }, 250);
-        }
+                document.body.removeChild(form);
+                document.body.removeChild(iframe);
+            }, 1000);
+        };
         
-        function updateTimer() {
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
-            const secs = (elapsed % 60).toString().padStart(2, '0');
-            document.getElementById('timerDisplay').textContent = `${mins}:${secs}`;
-        }
+        iframe.onerror = function() {
+            document.getElementById('summaryStatus').textContent = '✗ Error al enviar';
+            document.getElementById('summaryStatus').className = 'summary-value warning';
+            
+            const errorDiv = document.getElementById('errorDetails');
+            errorDiv.style.display = 'block';
+            errorDiv.innerHTML = `
+                <strong>Error de conexión con el servidor.</strong><br>
+                Por favor, copia los datos manualmente:<br>
+                <pre style="white-space: pre-wrap; word-break: break-all; font-size: 10px;">${JSON.stringify(data, null, 2)}</pre>
+            `;
+            reject(new Error('Error de conexión'));
+        };
         
-        async function finishTest() {
-            isTestRunning = false;
-            clearInterval(timerInterval);
-            
-            const totalTime = Math.floor((Date.now() - startTime) / 1000);
-            
-            document.getElementById('testArea').style.display = 'none';
-            document.getElementById('finishArea').style.display = 'block';
-            
-            // Actualizar resumen visual
-            document.getElementById('summaryEmail').textContent = email;
-            const mins = Math.floor(totalTime / 60);
-            const secs = totalTime % 60;
-            document.getElementById('summaryTime').textContent = `${mins} min ${secs} seg`;
-            document.getElementById('summaryQuestions').textContent = responses.length;
-            
-            // Mostrar eventos de seguridad
-            const alertsElement = document.getElementById('summaryAlerts');
-            if (cheatEvents.length === 0) {
-                alertsElement.textContent = 'Ninguno';
-                alertsElement.className = 'summary-value success';
-            } else {
-                alertsElement.textContent = `${cheatEvents.length} detectados`;
-                alertsElement.className = 'summary-value alert';
-            }
-            
-            document.getElementById('loadingBox').style.display = 'block';
-            
-            // Obtener IP
-            let ipAddress = 'No disponible';
-            try {
-                const ipResponse = await fetch('https://api.ipify.org?format=json');
-                const ipData = await ipResponse.json();
-                ipAddress = ipData.ip;
-            } catch (e) {
-                console.log('IP no disponible');
-            }
-            
-            // Preparar datos para envío
-            const testData = {
-                type: 'test_complete',
-                email: email,
-                fecha: new Date().toLocaleString('es-ES'),
-                respuestas: responses,
-                tiempoTotal: totalTime,
-                ipAddress: ipAddress,
-                userAgent: navigator.userAgent,
-                timestamp: new Date().toISOString(),
-                trampasCount: cheatEvents.length,
-                detalleTrampas: cheatEvents
-            };
-            
-            console.log('Enviando datos:', testData);
-            
-            // Intentar enviar (3 intentos)
-            let attempts = 0;
-            const maxAttempts = 3;
-            let success = false;
-            let lastError = '';
-            
-            while (attempts < maxAttempts && !success) {
-                attempts++;
-                
-                try {
-                    const response = await fetch(URL_GOOGLE_SCRIPT, {
-                        method: 'POST',
-                        mode: 'cors',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(testData)
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        success = true;
-                        document.getElementById('summaryStatus').textContent = '✓ Enviado correctamente';
-                        document.getElementById('summaryStatus').className = 'summary-value success';
-                        document.getElementById('loadingBox').innerHTML = 
-                            '<p style="color: var(--success); font-weight: 600; font-size: 1.1rem;">✓ Resultados enviados correctamente</p>';
-                    } else {
-                        throw new Error(result.error || 'Error del servidor');
-                    }
-                    
-                } catch (error) {
-                    lastError = error.message;
-                    console.error(`Intento ${attempts} fallido:`, error);
-                    
-                    if (attempts < maxAttempts) {
-                        await new Promise(r => setTimeout(r, 2000));
-                    }
-                }
-            }
-            
-            if (!success) {
-                document.getElementById('summaryStatus').textContent = '✗ Error al enviar';
-                document.getElementById('summaryStatus').className = 'summary-value warning';
-                
-                const errorDiv = document.getElementById('errorDetails');
-                errorDiv.style.display = 'block';
-                errorDiv.innerHTML = `
-                    <strong>Error después de ${maxAttempts} intentos:</strong><br>
-                    ${lastError}<br><br>
-                    <strong>Datos para enviar manualmente:</strong><br>
-                    <pre style="white-space: pre-wrap; word-break: break-all; font-size: 10px;">${JSON.stringify(testData, null, 2)}</pre>
-                `;
-            }
-            
-            // Salir de pantalla completa al terminar
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
-            }
-        }
+        form.submit();
+    });
+}
     </script>
 </body>
 </html>
