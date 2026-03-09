@@ -329,6 +329,11 @@
             transform: scale(1.05);
         }
         
+        .option-card.disabled {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        
         .option-number {
             font-size: 2rem;
             font-weight: 800;
@@ -730,6 +735,7 @@ let startTime;
 let email;
 let timerInterval;
 let isTestRunning = false;
+let isProcessing = false; // NUEVO: Bloqueo anti-doble-clic
 
 // Preguntas BFQ (array completo)
 const preguntasBFQ = [
@@ -997,20 +1003,36 @@ function showQuestion() {
         btn.onclick = () => selectOption(i + 1, btn);
         container.appendChild(btn);
     });
+    
+    // Resetear bloqueo al mostrar nueva pregunta
+    isProcessing = false;
 }
 
 function selectOption(value, element) {
-    document.querySelectorAll('.option-card').forEach(card => {
-        card.classList.remove('selected');
-    });
-    element.classList.add('selected');
+    // BLOQUEO ANTI-DOBLE-CLIC: Si ya está procesando, ignorar el clic
+    if (isProcessing) return;
     
+    // Activar bloqueo inmediatamente
+    isProcessing = true;
+    
+    // Deshabilitar todas las opciones visualmente
+    document.querySelectorAll('.option-card').forEach(card => {
+        card.classList.add('disabled');
+        card.style.pointerEvents = 'none';
+    });
+    
+    // Marcar seleccionada
+    element.classList.add('selected');
+    element.classList.remove('disabled');
+    
+    // Guardar respuesta
     responses.push({
         question: currentQuestion + 1,
         answer: value,
         timestamp: new Date().toISOString()
     });
     
+    // Pequeña pausa para feedback visual, luego siguiente pregunta
     setTimeout(() => {
         currentQuestion++;
         
@@ -1019,7 +1041,7 @@ function selectOption(value, element) {
         } else {
             showQuestion();
         }
-    }, 250);
+    }, 300);
 }
 
 function updateTimer() {
